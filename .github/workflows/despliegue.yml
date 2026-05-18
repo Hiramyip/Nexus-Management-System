@@ -1,0 +1,19 @@
+name: Despliegue Proyecto B - Desarrollo
+
+on:
+  push:
+    branches:
+      - develop
+      - 'feature/*' # Se activa con sus ramas de trabajo
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, feature-nexus] # <-- ¡GitHub enviará el código solo a la carpeta B!
+    steps:
+      - name: Descargar codigo actual
+        uses: actions/checkout@v4
+
+      - name: Levantar Docker de Desarrollo
+        run: |
+          docker compose -f docker-compose.dev.yml down
+          docker compose -f docker-compose.dev.yml up -d --build

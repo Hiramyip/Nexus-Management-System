@@ -1,0 +1,20 @@
+name: Validar Pull Request
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+
+jobs:
+  validate-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Validar construcción de Docker Compose
+        run: |
+          # Esto simula la construcción de tus servicios (frontend, backend, python)
+          # para asegurar que el PR no tiene errores de sintaxis o tipado.
+          docker compose build
