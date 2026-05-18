@@ -1,0 +1,99 @@
+version: '3.8'
+name: nexusmanager-feature
+
+services:
+  # --- 1. BASE DE DATOS SQL SERVER ---
+  sqlserver-ft:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    container_name: gestion_sqlserver-ft
+    restart: always
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=KMNnjHMjkkjVFvtv45b34b67bB6bu
+      - MSSQL_AGENT_ENABLED=True
+    ports:
+      - "1435:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - default
+
+  # --- 2. BASE DE DATOS MONGO DB ---
+  mongodb-ft:
+    image: mongo:7.0.34-jammy
+    container_name: gestion_mongodb-ft
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=usuario_mongo
+      - MONGO_INITDB_ROOT_PASSWORD=KMNnjHMjkkjVFvtv45b34b67bB6bu
+    ports:
+      - "27019:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - default
+
+  # --- 3. BACKEND API PRINCIPAL (TYPESCRIPT) ---
+  backend-ft:
+    build: ./backend
+    container_name: gestion_backend_ts-ft
+    restart: always
+    ports:
+      - "8002:8000"
+    environment:
+      - SQL_SERVER_URL=mssql://sa:KMNnjHMjkkjVFvtv45b34b67bB6bu@sqlserver-ft:1433/gestion_db
+      - MONGO_URL=mongodb://usuario_mongo:KMNnjHMjkkjVFvtv45b34b67bB6bu@mongodb-ft:27017/
+      - UPLOAD_DIR=/app/uploads
+      - PYTHON_SERVICE_URL=http://excel-processor-ft:8001
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - ./data/uploads:/app/uploads
+    depends_on:
+      - sqlserver-ft
+      - mongodb-ft
+    networks:
+      - default
+      - nexus-network # Permitir acceso al NPM de producción
+
+  # --- 4. PROCESADOR DE EXCEL (PYTHON) ---
+  excel-processor-ft:
+    build: ./excel-processor
+    container_name: gestion_python_worker-ft
+    restart: always
+    ports:
+      - "8003:8001"
+    environment:
+      - SQL_SERVER_URL=mssql+pyodbc://sa:KMNnjHMjkkjVFvtv45b34b67bB6bu@sqlserver:1433/gestion_db?driver=ODBC+Driver+18+for+SQL+Server
+      - MONGO_URL=mongodb://usuario_mongo:KMNnjHMjkkjVFvtv45b34b67bB6bu@mongodb:27017/
+      - UPLOAD_DIR=/app/uploads
+    volumes:
+      - ./excel-processor:/app
+      - ./data/uploads:/app/uploads
+    depends_on:
+      - sqlserver-ft
+      - mongodb-ft
+    networks:
+      - default
+
+  # --- 5. FRONTEND (TYPESCRIPT) ---
+  frontend-ft:
+    build: ./frontend
+    container_name: gestion_frontend-ft
+    restart: always
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend-ft
+    networks:
+      - default
+      - nexus-network # Permitir acceso al NPM de producción
+
+volumes:
+  sqlserver_data:
+  mongodb_data:
+
+networks:
+  nexus-network:
+    external: true

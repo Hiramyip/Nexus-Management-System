@@ -1,0 +1,73 @@
+# ====================================================================
+# ENTORNO 1: SISTEMA OPERATIVO Y HERRAMIENTAS (Windows / VS Code)
+# ====================================================================
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.user
+
+# ====================================================================
+# ENTORNO 2: RUNNER DE GITHUB ACTIONS (Ubicado en ./actions-runner)
+# ====================================================================
+# Ignorar por completo la carpeta donde instalaste el runner local
+actions-runner/
+
+# Registros y archivos temporales que pueda generar el runner en la raíz
+_diag/
+_work/
+*.log
+
+# ====================================================================
+# ENTORNO 3: BACKEND & FRONTEND (Node.js / TypeScript / Vite)
+# ====================================================================
+# Bloquea los node_modules de cualquier subcarpeta
+**/node_modules/
+.npm/
+
+# Carpetas de subidas de archivos locales (¡No queremos imágenes/excel de prueba en Git!)
+**/uploads/
+
+# Archivos generados por compilación o empaquetado
+**/dist/
+**/build/
+.out/
+.production/
+
+# Archivos de caché de TypeScript y Vite
+*.tsbuildinfo
+.vite/
+
+# ====================================================================
+# ENTORNO 4: EXCEL-PROCESSOR (Python)
+# ====================================================================
+# Archivos de caché de Python
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ====================================================================
+# SEGURIDAD Y CONFIGURACIÓN LOCAL (Variables de entorno)
+# ====================================================================
+**/.env
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
+*.pem
+*.key
+
+# Ignorar bases de datos locales por completo
+data/
