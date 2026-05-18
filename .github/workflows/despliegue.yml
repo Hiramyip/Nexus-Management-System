@@ -12,8 +12,15 @@ jobs:
     steps:
       - name: Descargar codigo actual
         uses: actions/checkout@v4
-
+      - name: Set PowerShell Execution Policy
+        run: Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+        shell: powershell
       - name: Levantar Docker de Desarrollo
         run: |
           docker compose -f docker-compose.feature.yml down
           docker compose -f docker-compose.feature.yml up -d --build
+      - name: Levantar Docker de Produccion
+        run: |
+          docker compose -f docker-compose.prod.yml down
+          docker compose -f docker-compose.prod.yml up -d --build
+
