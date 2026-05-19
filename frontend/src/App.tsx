@@ -4,7 +4,7 @@ function App() {
 
   return (
     <React.Fragment>
-      <h1>Server funcionando</h1>
+      <h1>Server funcionando!</h1>
     </React.Fragment>
     
   )
