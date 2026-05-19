@@ -2,11 +2,6 @@ version: '3.8'
 name: nexusmanager-prod
 
 services:
-  # --- 1. BASE DE DATOS SQL SERVER ---
-
-
-  # --- 2. BASE DE DATOS MONGO DB ---
-
   # --- 3. BACKEND API PRINCIPAL (TYPESCRIPT) ---
   backend-pd:
     build: ./backend
@@ -21,9 +16,6 @@ services:
       - PYTHON_SERVICE_URL=http://excel-processor-pd:8001
     volumes:
       - ./data/uploads:/app/uploads
-    depends_on:
-      - sqlserver-pd
-      - mongodb-pd
     networks:
       - default
       - nexus-network
@@ -41,9 +33,6 @@ services:
       - UPLOAD_DIR=/app/uploads
     volumes:
       - ./data/uploads:/app/uploads
-    depends_on:
-      - sqlserver-pd
-      - mongodb-pd
     networks:
       - default
 
@@ -57,10 +46,6 @@ services:
     networks:
       - default
       - nexus-network
-
-volumes:
-  sqlserver_data:
-  mongodb_data:
 
 networks:
   nexus-network:

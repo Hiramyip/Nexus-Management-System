@@ -2,12 +2,6 @@ version: '3.8'
 name: nexusmanager-feature
 
 services:
-  # --- 1. BASE DE DATOS SQL SERVER ---
-  
-
-  # --- 2. BASE DE DATOS MONGO DB ---
-  
-
   # --- 3. BACKEND API PRINCIPAL (TYPESCRIPT) ---
   backend-ft:
     build: ./backend
@@ -16,17 +10,14 @@ services:
     ports:
       - "8002:8000"
     environment:
-      - SQL_SERVER_URL=mssql://sa:${SQL_SA_PASSWORD}@sqlserver-ft:1433/gestion_db
-      - MONGO_URL=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb-ft:27017/
+      - SQL_SERVER_URL=mssql://sa:${SQL_SA_PASSWORD}@sqlserver-pd:1433/gestion_db
+      - MONGO_URL=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb-pd:27017/
       - UPLOAD_DIR=/app/uploads
       - PYTHON_SERVICE_URL=http://excel-processor-ft:8001
     volumes:
       - ./backend:/app
       - /app/node_modules
       - ./data/uploads:/app/uploads
-    depends_on:
-      - sqlserver-ft
-      - mongodb-ft
     networks:
       - default
       - nexus-network
@@ -39,15 +30,12 @@ services:
     ports:
       - "8003:8001"
     environment:
-      - SQL_SERVER_URL=mssql+pyodbc://sa:${SQL_SA_PASSWORD}@sqlserver-ft:1433/gestion_db?driver=ODBC+Driver+18+for+SQL+Server
-      - MONGO_URL=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb-ft:27017/
+      - SQL_SERVER_URL=mssql+pyodbc://sa:${SQL_SA_PASSWORD}@sqlserver-pd:1433/gestion_db?driver=ODBC+Driver+18+for+SQL+Server
+      - MONGO_URL=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb-pd:27017/
       - UPLOAD_DIR=/app/uploads
     volumes:
       - ./excel-processor:/app
       - ./data/uploads:/app/uploads
-    depends_on:
-      - sqlserver-ft
-      - mongodb-ft
     networks:
       - default
 
