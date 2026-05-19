@@ -11,7 +11,7 @@ jobs:
     runs-on: [self-hosted, feature-nexus] # <-- ¡GitHub enviará el código solo a la carpeta B!
     defaults:
       run:
-        shell: powershell -ExecutionPolicy Bypass -Command Clean-String -Command " . '{0}' "
+        shell: cmd
     steps:
       - name: Descargar codigo actual
         uses: actions/checkout@v4
