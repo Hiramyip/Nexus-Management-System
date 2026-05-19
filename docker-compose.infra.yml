@@ -17,7 +17,7 @@ services:
     networks:
       - nexus-network # Conectado ÚNICAMENTE a la red global para ver a ambos entornos
 
-  sqlserver:
+  sqlserver-pd:
     image: mcr.microsoft.com/mssql/server:2025-latest
     container_name: gestion_sqlserver_prod
     restart: always
@@ -33,7 +33,7 @@ services:
       - default
       - nexus-network
 
-  mongodb:
+  mongodb-pd:
     image: mongo:7.0.34-jammy
     container_name: gestion_mongodb_prod
     restart: always
@@ -59,6 +59,11 @@ services:
       - TOKEN=${DUCKDNS_TOKEN}
     networks:
       - nexus-network
+
+volumes:
+  sqlserver_data:
+  mongodb_data:
+
 
 networks:
   nexus-network:
