@@ -1,0 +1,33 @@
+version: '3.8'
+name: nexusmanager-infra
+
+services:
+  # --- 1. PROXY REVERSO Y ADMINISTRADOR SSL (AISLADO) ---
+  nginx-proxy:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: gestion_proxy_manager
+    restart: always
+    ports:
+      - '80:80'     # HTTP Global
+      - '443:443'   # HTTPS Global
+      - '81:81'     # Panel Web de administración
+    volumes:
+      - ./proxy/data:/data
+      - ./proxy/letsencrypt:/etc/letsencrypt
+    networks:
+      - nexus-network # Conectado ÚNICAMENTE a la red global para ver a ambos entornos
+
+  # --- 2. ACTUALIZADOR DUCK DNS (AISLADO) ---
+  duckdns:
+    image: linuxserver/duckdns:latest
+    container_name: gestion_duckdns_updater
+    restart: always
+    environment:
+      - SUBDOMAINS=${DUCKDNS_SUBDOMAINS}
+      - TOKEN=${DUCKDNS_TOKEN}
+    networks:
+      - nexus-network
+
+networks:
+  nexus-network:
+    external: true

@@ -1,0 +1,93 @@
+version: '3.8'
+name: nexusmanager-prod
+
+services:
+  # --- 1. BASE DE DATOS SQL SERVER ---
+  sqlserver-pd:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    container_name: gestion_sqlserver_prod
+    restart: always
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${SQL_SA_PASSWORD}
+      - MSSQL_AGENT_ENABLED=True
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - default
+
+  # --- 2. BASE DE DATOS MONGO DB ---
+  mongodb-pd:
+    image: mongo:7.0.34-jammy
+    container_name: gestion_mongodb_prod
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - default
+
+  # --- 3. BACKEND API PRINCIPAL (TYPESCRIPT) ---
+  backend-pd:
+    build: ./backend
+    container_name: gestion_backend_ts_prod
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - SQL_SERVER_URL=mssql://sa:${SQL_SA_PASSWORD}@sqlserver-pd:1433/gestion_db
+      - MONGO_URL=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb-pd:27017/
+      - UPLOAD_DIR=/app/uploads
+      - PYTHON_SERVICE_URL=http://excel-processor-pd:8001
+    volumes:
+      - ./data/uploads:/app/uploads
+    depends_on:
+      - sqlserver-pd
+      - mongodb-pd
+    networks:
+      - default
+      - nexus-network
+
+  # --- 4. PROCESADOR DE EXCEL (PYTHON) ---
+  excel-processor-pd:
+    build: ./excel-processor
+    container_name: gestion_python_worker_prod
+    restart: always
+    ports:
+      - "8001:8001"
+    environment:
+      - SQL_SERVER_URL=mssql+pyodbc://sa:${SQL_SA_PASSWORD}@sqlserver-pd:1433/gestion_db?driver=ODBC+Driver+18+for+SQL+Server
+      - MONGO_URL=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb-pd:27017/
+      - UPLOAD_DIR=/app/uploads
+    volumes:
+      - ./data/uploads:/app/uploads
+    depends_on:
+      - sqlserver-pd
+      - mongodb-pd
+    networks:
+      - default
+
+  # --- 5. FRONTEND (TYPESCRIPT) ---
+  frontend-pd:
+    build: ./frontend
+    container_name: gestion_frontend_prod
+    restart: always
+    depends_on:
+      - backend-pd
+    networks:
+      - default
+      - nexus-network
+
+volumes:
+  sqlserver_data:
+  mongodb_data:
+
+networks:
+  nexus-network:
+    external: true
