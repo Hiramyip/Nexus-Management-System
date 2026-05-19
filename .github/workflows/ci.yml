@@ -1,0 +1,63 @@
+name: Validar Pull Request
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+
+jobs:
+  # TRABAJO 1: Validar el Backend
+  validate-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar codigo del PR
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js (Backend)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Ajusta a la versión exacta que use tu Backend Developer
+          cache: 'npm'       # Agrega caché para acelerar las futuras ejecuciones de CI
+          cache-dependency-path: './backend/package-lock.json'
+
+      - name: Instalar dependencias del Backend
+        run: |
+          cd backend
+          npm ci
+
+      # CUMPLE CON: "El DevOps debera revisar que el codigo compile" (RF-DO-03)
+      # En Node.js (JavaScript/TypeScript), el build linter o compilación valida errores sintácticos.
+      - name: Compilar / Validar Sintaxis del Backend
+        run: |
+          cd backend
+          npm run build --if-present
+
+      # CUMPLE CON: "El cambio este probado / Pruebas unitarias" (RF-DO-03 y RF-BE-08)
+      - name: Ejecutar Pruebas Unitarias del Backend
+        run: |
+          cd backend
+          npm test --if-present
+  # TRABAJO 2: Validar el Frontend
+  validate-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar codigo del PR
+        uses: actions/checkout@v4
+
+      # CONFIGURACIÓN DEL ENTORNO (Ejemplo estándar para Frontend Web/Escritorio JS)
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar dependencias del Frontend
+        run: |
+          cd frontend
+          npm ci
+
+      # CUMPLE CON: Validar que el código de la interfaz no tenga errores sintácticos
+      - name: Compilar Frontend (Build Test)
+        run: |
+          cd frontend
+          npm run build --if-present
