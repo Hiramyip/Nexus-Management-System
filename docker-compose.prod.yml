@@ -115,7 +115,7 @@ services:
     restart: always
     environment:
       # Añadimos los subdominios de producción Y los de feature separados por comas
-      - SUBDOMAINS=nexxusms,api-nexxusms,feat-nexxusms,feat-api-nexxusms 
+      - SUBDOMAINS=nexxusms,api-nexxusms,ft-nexxusms,ft-api-nexxusms 
       - TOKEN=04e665a9-04e6-4b69-a727-391161ffd7df
     networks:
       - default
