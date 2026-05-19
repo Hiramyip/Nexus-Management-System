@@ -3,35 +3,9 @@ name: nexusmanager-prod
 
 services:
   # --- 1. BASE DE DATOS SQL SERVER ---
-  sqlserver-pd:
-    image: mcr.microsoft.com/mssql/server:2025-latest
-    container_name: gestion_sqlserver_prod
-    restart: always
-    environment:
-      - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=${SQL_SA_PASSWORD}
-      - MSSQL_AGENT_ENABLED=True
-    ports:
-      - "1433:1433"
-    volumes:
-      - sqlserver_data:/var/opt/mssql
-    networks:
-      - default
+
 
   # --- 2. BASE DE DATOS MONGO DB ---
-  mongodb-pd:
-    image: mongo:7.0.34-jammy
-    container_name: gestion_mongodb_prod
-    restart: always
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
-    networks:
-      - default
 
   # --- 3. BACKEND API PRINCIPAL (TYPESCRIPT) ---
   backend-pd:
