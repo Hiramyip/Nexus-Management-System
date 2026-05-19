@@ -9,12 +9,13 @@ on:
 jobs:
   deploy:
     runs-on: [self-hosted, feature-nexus] # <-- ¡GitHub enviará el código solo a la carpeta B!
+    defaults:
+      run:
+        shell: powershell
     steps:
       - name: Descargar codigo actual
         uses: actions/checkout@v4
-      - name: Set PowerShell Execution Policy
-        run: Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-        shell: powershell
+     
       - name: Levantar Docker de Desarrollo
         run: |
           docker compose -f docker-compose.feature.yml down
