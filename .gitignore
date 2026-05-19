@@ -68,6 +68,9 @@ pip-delete-this-directory.txt
 **/.env.production.local
 *.pem
 *.key
+docker-compose.feature.yml
+docker-compose.prod.yml
+docker-compose.infra.yml
 
 # Ignorar bases de datos locales por completo
 data/
