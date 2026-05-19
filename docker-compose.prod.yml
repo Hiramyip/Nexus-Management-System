@@ -90,36 +90,6 @@ services:
       - default
       - nexus-network # El proxy lo buscará aquí
 
-  # --- 6. PROXY REVERSO Y ADMINISTRADOR SSL (EL ÚNICO Y PRINCIPAL) ---
-  nginx-proxy-pd:
-    image: 'jc21/nginx-proxy-manager:latest'
-    container_name: gestion_proxy_manager
-    restart: always
-    ports:
-      - '80:80'     # HTTP Global
-      - '443:443'   # HTTPS Global
-      - '81:81'     # Panel Web de administración
-    volumes:
-      - ./proxy/data:/data
-      - ./proxy/letsencrypt:/etc/letsencrypt
-    depends_on:
-      - frontend-pd
-    networks:
-      - default
-      - nexus-network # Conectado a la red global para ver a Feature
-
-  # --- 7. ACTUALIZADOR DUCK DNS (Maneja todos los subdominios juntos) ---
-  duckdns-pd:
-    image: linuxserver/duckdns:latest
-    container_name: gestion_duckdns_updater
-    restart: always
-    environment:
-      # Añadimos los subdominios de producción Y los de feature separados por comas
-      - SUBDOMAINS=nexxusms,api-nexxusms,ft-nexxusms,ft-api-nexxusms 
-      - TOKEN=04e665a9-04e6-4b69-a727-391161ffd7df
-    networks:
-      - default
-
 volumes:
   sqlserver_data:
   mongodb_data:
