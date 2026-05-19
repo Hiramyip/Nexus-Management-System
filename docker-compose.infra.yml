@@ -17,6 +17,38 @@ services:
     networks:
       - nexus-network # Conectado ÚNICAMENTE a la red global para ver a ambos entornos
 
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    container_name: gestion_sqlserver_prod
+    restart: always
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${SQL_SA_PASSWORD}
+      - MSSQL_AGENT_ENABLED=True
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - default
+      - nexus-network
+
+  mongodb:
+    image: mongo:7.0.34-jammy
+    container_name: gestion_mongodb_prod
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - default
+      - nexus-network
+
+
   # --- 2. ACTUALIZADOR DUCK DNS (AISLADO) ---
   duckdns:
     image: linuxserver/duckdns:latest
