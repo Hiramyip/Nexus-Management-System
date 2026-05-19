@@ -5,6 +5,7 @@ on:
     branches:
       - develop
       - 'feature/*' # Se activa con sus ramas de trabajo
+      - main
 
 jobs:
   deploy:
