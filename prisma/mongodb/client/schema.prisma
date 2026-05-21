@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./client"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_URL")
+}
+
+model eventoActividadDatos {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+}
+
+model eventoInicioSesion {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+}
+
+model infoOficios {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+}
+
+model logReportesGenerados {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+}

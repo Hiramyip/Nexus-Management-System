@@ -1,0 +1,22 @@
+{
+  "name": "nexus-management-system",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:sql:pull": "prisma db pull --schema=./prisma/sqlserver/schema.prisma",
+    "db:sql:gen": "prisma generate --schema=./prisma/sqlserver/schema.prisma",
+    "db:mongo:pull": "prisma db pull --schema=./prisma/mongodb/schema.prisma",
+    "db:mongo:gen": "prisma generate --schema=./prisma/mongodb/schema.prisma"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.8.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.5",
+    "prisma": "^6.8.0",
+    "tsx": "^4.22.3",
+    "typescript": "^5.0.0"
+  }
+}
