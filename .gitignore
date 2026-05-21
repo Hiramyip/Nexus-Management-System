@@ -71,3 +71,4 @@ pip-delete-this-directory.txt
 
 # Ignorar bases de datos locales por completo
 data/
+/generated/prisma
