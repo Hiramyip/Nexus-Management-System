@@ -1,6 +1,34 @@
 import express from 'express';
 import cors from 'cors';
 import { sqlDb, mongoDb } from './db';
+import { requestInterceptor } from './services/RequestInterceptorService.js';
+
+// SQL Routes
+import grupoTrabajoRoutes from './routes/sql/grupoTrabajo.routes.js';
+import usuariosRoutes from './routes/sql/usuarios.routes.js';
+import transaccionesExcelRoutes from './routes/sql/transaccionesExcel.routes.js';
+import casasQuemadasRoutes from './routes/sql/casasQuemadas.routes.js';
+import cigaRoutes from './routes/sql/ciga.routes.js';
+import consejoParticipacionSocialRoutes from './routes/sql/consejoParticipacionSocial.routes.js';
+import descacharrizacionRoutes from './routes/sql/descacharrizacion.routes.js';
+import empleoColoniaRoutes from './routes/sql/empleoColonia.routes.js';
+import entregaObrasRoutes from './routes/sql/entregaObras.routes.js';
+import escuelasRoutes from './routes/sql/escuelas.routes.js';
+import eventosEspecialesRoutes from './routes/sql/eventosEspeciales.routes.js';
+import oficiosRoutes from './routes/sql/oficios.routes.js';
+import panteonesRoutes from './routes/sql/panteones.routes.js';
+import pctRoutes from './routes/sql/pct.routes.js';
+import peticionesDirectasRoutes from './routes/sql/peticionesDirectas.routes.js';
+import programacionDiariaRoutes from './routes/sql/programacionDiaria.routes.js';
+import puentesRoutes from './routes/sql/puentes.routes.js';
+import tiraderosGestionAmbientalRoutes from './routes/sql/tiraderosGestionAmbiental.routes.js';
+import tiraderosInspeccionRoutes from './routes/sql/tiraderosInspeccion.routes.js';
+
+// Mongo Routes
+import eventoActividadDatosRoutes from './routes/mongo/eventoActividadDatos.routes.js';
+import eventoInicioSesionRoutes from './routes/mongo/eventoInicioSesion.routes.js';
+import infoOficiosRoutes from './routes/mongo/infoOficios.routes.js';
+import logReportesGeneradosRoutes from './routes/mongo/logReportesGenerados.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -8,7 +36,9 @@ const EXCEL_PROCESSOR_URL = process.env.EXCEL_PROCESSOR_URL || 'http://localhost
 
 app.use(cors());
 app.use(express.json());
+app.use(requestInterceptor);
 
+// Status endpoint (keeps original logic)
 app.get('/api/status', async (req, res) => {
     let sqlServerStatus = 'offline';
     let mongoDbStatus = 'offline';
@@ -38,51 +68,35 @@ app.get('/api/status', async (req, res) => {
     });
 });
 
-app.get('/api/sql/usuarios', async (req, res) => {
-    try {
-        const users = await sqlDb.usuarios.findMany();
-        res.json(users);
-    } catch (e) {
-        res.status(500).json({ error: (e as Error).message });
-    }
-});
+// Mount SQL routes
+app.use('/api/sql/grupoTrabajo', grupoTrabajoRoutes);
+app.use('/api/sql/usuarios', usuariosRoutes);
+app.use('/api/sql/transaccionesExcel', transaccionesExcelRoutes);
+app.use('/api/sql/casasQuemadas', casasQuemadasRoutes);
+app.use('/api/sql/ciga', cigaRoutes);
+app.use('/api/sql/consejoParticipacionSocial', consejoParticipacionSocialRoutes);
+app.use('/api/sql/descacharrizacion', descacharrizacionRoutes);
+app.use('/api/sql/empleoColonia', empleoColoniaRoutes);
+app.use('/api/sql/entregaObras', entregaObrasRoutes);
+app.use('/api/sql/escuelas', escuelasRoutes);
+app.use('/api/sql/eventosEspeciales', eventosEspecialesRoutes);
+app.use('/api/sql/oficios', oficiosRoutes);
+app.use('/api/sql/panteones', panteonesRoutes);
+app.use('/api/sql/pct', pctRoutes);
+app.use('/api/sql/peticionesDirectas', peticionesDirectasRoutes);
+app.use('/api/sql/programacionDiaria', programacionDiariaRoutes);
+app.use('/api/sql/puentes', puentesRoutes);
+app.use('/api/sql/tiraderosGestionAmbiental', tiraderosGestionAmbientalRoutes);
+app.use('/api/sql/tiraderosInspeccion', tiraderosInspeccionRoutes);
 
-app.post('/api/sql/usuarios', async (req, res) => {
-    try {
-        const { nombre, password_user, rol } = req.body;
-        const user = await sqlDb.usuarios.create({
-            data: {
-                nombre,
-                password_user,
-                rol,
-                fechaRegistro: new Date()
-            }
-        });
-        res.json(user);
-    } catch (e) {
-        res.status(500).json({ error: (e as Error).message });
-    }
-});
+// Mount Mongo routes
+app.use('/api/mongo/eventoActividadDatos', eventoActividadDatosRoutes);
+app.use('/api/mongo/eventoInicioSesion', eventoInicioSesionRoutes);
+app.use('/api/mongo/infoOficios', infoOficiosRoutes);
+app.use('/api/mongo/logReportesGenerados', logReportesGeneradosRoutes);
 
-app.get('/api/mongo/sesiones', async (req, res) => {
-    try {
-        const sessions = await mongoDb.eventoInicioSesion.findMany();
-        res.json(sessions);
-    } catch (e) {
-        res.status(500).json({ error: (e as Error).message });
-    }
-});
-
-app.post('/api/mongo/sesiones', async (req, res) => {
-    try {
-        const session = await mongoDb.eventoInicioSesion.create({
-            data: {}
-        });
-        res.json(session);
-    } catch (e) {
-        res.status(500).json({ error: (e as Error).message });
-    }
-});
+// Legacy route aliases for backward compatibility
+app.use('/api/mongo/sesiones', eventoInicioSesionRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

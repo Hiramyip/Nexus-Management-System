@@ -130,7 +130,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\gael1\\OneDrive\\Escritorio\\uni\\ABD\\proyecto\\nexxus\\Nexus-Management-System\\prisma\\mongodb\\client",
+      "value": "/app/prisma/mongodb/client",
       "fromEnvVar": null
     },
     "config": {
@@ -139,17 +139,16 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "windows",
+        "value": "linux-musl-openssl-3.0.x",
         "native": true
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\gael1\\OneDrive\\Escritorio\\uni\\ABD\\proyecto\\nexxus\\Nexus-Management-System\\prisma\\mongodb\\schema.prisma",
+    "sourceFilePath": "/app/prisma/mongodb/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": "../../../.env",
-    "schemaEnvPath": "../../../.env"
+    "rootEnvPath": null
   },
   "relativePath": "..",
   "clientVersion": "6.19.3",

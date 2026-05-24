@@ -1,0 +1,51 @@
+# Ignorar dependencias pesadas de Node
+**/node_modules/
+.npm/
+
+# Ignorar entornos virtuales de Python
+**/venv/
+**/.venv/
+**/__pycache__/
+*.pyc
+
+# Ignorar almacenamiento local o subidas de archivos
+**/data/
+**/uploads/
+**/.next/
+**/.dist/
+**/dist/
+
+# Ignorar configuraciones de Git e IDEs
+.git/
+.gitignore
+.vscode/
+.idea/
+
+
+# Ignorar certificados y carpetas del proxy que rompen en Windows
+**/proxy/
+**/letsencrypt/
+*.pem
+*.key
+
+# Archivos de entorno locales (para que no se filtren a la imagen)
+.env*
+
+
+**/frontend/.next/
+**/frontend/build/
+**/frontend/dist/
+
+**/node_modules/
+.npm/
+**/proxy/
+**/letsencrypt/
+*.pem
+*.key
+.env*
+
+# Crucial para limpiar el peso del frontend
+**/frontend/.next/
+**/frontend/out/
+**/frontend/dist/
+**/frontend/build/

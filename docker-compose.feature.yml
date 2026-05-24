@@ -3,8 +3,11 @@ name: nexusmanager-feature
 
 services:
   # --- 3. BACKEND API PRINCIPAL (TYPESCRIPT) ---
+  # --- 3. BACKEND API PRINCIPAL (TYPESCRIPT) ---
   backend-ft:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: gestion_backend_ts-ft
     restart: always
     ports:
@@ -18,13 +21,16 @@ services:
       - ./backend:/app
       - /app/node_modules
       - ./data/uploads:/app/uploads
+      - ./prisma:/app/prisma
     networks:
       - default
       - nexus-network
 
   # --- 4. PROCESADOR DE EXCEL (PYTHON) ---
   excel-processor-ft:
-    build: ./excel-processor
+    build:
+      context: .
+      dockerfile: excel-processor/Dockerfile
     container_name: gestion_python_worker-ft
     restart: always
     ports:
@@ -41,12 +47,17 @@ services:
 
   # --- 5. FRONTEND (TYPESCRIPT) ---
   frontend-ft:
-    build: ./frontend
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
     container_name: gestion_frontend-ft
     restart: always
     volumes:
       - ./frontend:/app
-      - /app/node_modules
+      - /app/node_modules # <-- ASEGÚRATE DE QUE ESTA LÍNEA ESTÉ AQUÍ
+      - ./prisma:/app/prisma
+    ports:
+      - "3000:3000"
     depends_on:
       - backend-ft
     networks:
