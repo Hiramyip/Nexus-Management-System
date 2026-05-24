@@ -1,9 +1,16 @@
 FROM node:20-alpine
-WORKDIR /app
-COPY package.json .
-RUN npm install
-RUN npx prisma generate
 
-COPY . .
+WORKDIR /app
+
+COPY frontend/package.json .
+RUN npm install
+
+COPY prisma ./prisma
+COPY frontend/ .
+
 EXPOSE 3000
-CMD ["npm", "start"]
+
+# El mismo truco para el frontend
+CMD npx prisma@6 generate --schema=prisma/sqlserver/schema.prisma && \
+    npx prisma@6 generate --schema=prisma/mongodb/schema.prisma && \
+    npm start

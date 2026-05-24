@@ -347,7 +347,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\gael1\\OneDrive\\Escritorio\\uni\\ABD\\proyecto\\nexxus\\Nexus-Management-System\\prisma\\generated\\prisma",
+      "value": "/app/prisma/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -356,17 +356,16 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "windows",
+        "value": "linux-musl-openssl-3.0.x",
         "native": true
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\gael1\\OneDrive\\Escritorio\\uni\\ABD\\proyecto\\nexxus\\Nexus-Management-System\\prisma\\sqlserver\\schema.prisma",
+    "sourceFilePath": "/app/prisma/sqlserver/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": null,
-    "schemaEnvPath": "../../../.env"
+    "rootEnvPath": null
   },
   "relativePath": "../../sqlserver",
   "clientVersion": "6.19.3",

@@ -1,19 +1,17 @@
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
-COPY package.json .
+COPY backend/package.json .
 RUN npm install
 
-COPY . .
-
-# Copy Prisma schemas from parent directory
-COPY ../prisma ./prisma
-
-# Generate Prisma clients for both SQL Server and MongoDB
-RUN npx prisma generate --schema=prisma/sqlserver/schema.prisma
-RUN npx prisma generate --schema=prisma/mongodb/schema.prisma
+# Copiamos el código y la carpeta prisma para tenerlos listos
+COPY backend/ .
+COPY prisma ./prisma
 
 EXPOSE 8000
 
-CMD ["npm", "start"]
+# EL CAMBIO CLAVE: Forzamos la generación de Prisma justo antes de iniciar la app
+CMD npx prisma@6 generate --schema=prisma/sqlserver/schema.prisma && \
+    npx prisma@6 generate --schema=prisma/mongodb/schema.prisma && \
+    npm start
