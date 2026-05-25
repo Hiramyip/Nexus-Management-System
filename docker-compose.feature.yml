@@ -14,6 +14,8 @@ services:
       - "8002:8000"
     environment:
       - SQL_SERVER_URL=mssql://sa:${SQL_SA_PASSWORD}@sqlserver-pd:1433/gestion_db
+      - DATABASE_URL=mssql://sa:${SQL_SA_PASSWORD}@sqlserver-pd:1433/gestion_db
+
       - MONGO_URL=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb-pd:27017/
       - UPLOAD_DIR=/app/uploads
       - PYTHON_SERVICE_URL=http://excel-processor-ft:8001
@@ -23,8 +25,8 @@ services:
       - ./data/uploads:/app/uploads
       - ./prisma:/app/prisma
     networks:
-      - default
       - nexus-network
+      - default
 
   # --- 4. PROCESADOR DE EXCEL (PYTHON) ---
   excel-processor-ft:
@@ -61,8 +63,9 @@ services:
     depends_on:
       - backend-ft
     networks:
-      - default
       - nexus-network
+      - default
+      
 
 volumes:
   sqlserver_data:

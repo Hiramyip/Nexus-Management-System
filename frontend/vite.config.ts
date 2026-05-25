@@ -8,7 +8,8 @@ export default defineConfig({
     host: true,
     strictPort: true,
     watch: {
-      usePolling: true
+      usePolling: true,
+      ignored: ['**/Dockerfile', '**/.dockerignore', '**/.env*'] // <-- EL ESCUDO CONTRA EL ERROR
     },
     allowedHosts: ["nexxusms.duckdns.org", "ft-nexxusms.duckdns.org"]
   }
