@@ -4,6 +4,7 @@ name: nexusmanager-feature
 services:
   # --- 3. BACKEND API PRINCIPAL (TYPESCRIPT) ---
   # --- 3. BACKEND API PRINCIPAL (TYPESCRIPT) ---
+  # --- 3. BACKEND API PRINCIPAL (TYPESCRIPT) ---
   backend-ft:
     build:
       context: .
@@ -13,8 +14,14 @@ services:
     ports:
       - "8002:8000"
     environment:
-      - SQL_SERVER_URL=mssql://sa:${SQL_SA_PASSWORD}@sqlserver-pd:1433/gestion_db
+      # 1. Cambiamos 'mssql' por 'sqlserver'
+      # 2. Usamos el formato de punto y coma para evitar errores de dígitos inválidos
+      # 3. Apuntamos al contenedor 'sqlserver-pd' que es el nombre en tu archivo de infraestructura
+      - SQL_SERVER_URL=sqlserver://sqlserver-pd:1433;database=NexusMs_Dev;user=sa;password=${SQL_SA_PASSWORD};encrypt=true;trustServerCertificate=true;
+      
+      # Corregimos también el string de Mongo apuntando al contenedor 'mongodb-pd'
       - MONGO_URL=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb-pd:27017/
+      
       - UPLOAD_DIR=/app/uploads
       - PYTHON_SERVICE_URL=http://excel-processor-ft:8001
     volumes:
@@ -61,8 +68,9 @@ services:
     depends_on:
       - backend-ft
     networks:
-      - default
       - nexus-network
+      - default
+      
 
 volumes:
   sqlserver_data:
