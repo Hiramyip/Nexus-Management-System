@@ -34,4 +34,11 @@ export class UsuariosService {
     await this.getById(id); // valida existencia
     return this.repo.delete(id);
   }
+
+  async login(nombre: string, password_user: string): Promise<UsuariosEntity> {
+    const entity = await this.repo.findByNombre(nombre);
+    if (!entity) throw new Error('Usuario no encontrado');
+    if (entity.password_user !== password_user) throw new Error('Contraseña incorrecta');
+    return entity;
+  }
 }
