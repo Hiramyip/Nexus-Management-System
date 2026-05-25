@@ -4,147 +4,83 @@ import { UserRole } from "../types/roles";
 
 const SESSION_STORAGE_KEY = "app_session";
 const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 horas
+const API_URL = "https://ft-api-nexxusms.duckdns.org/api/sql/usuarios";
 
 /**
- * Mock de base de datos de usuarios
- * En producción esto vendría del backend
+ * Conexión real al API de autenticación en SQL Server
  */
-const MOCK_USERS: Record<string, { password: string; user: User }> = {
-  admin: {
-    password:
-      "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918", // admin123 en SHA-256
-    user: {
-      id: "1",
-      username: "admin",
-      email: "admin@empresa.com",
-      rol: "Developer",
-      nombre: "Administrador",
-    },
-  },
-  capturador: {
-    password:
-      "e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446", // captura123 en SHA-256
-    user: {
-      id: "2",
-      username: "capturador",
-      email: "capturador@empresa.com",
-      rol: "Capturador",
-      nombre: "Usuario Capturador",
-    },
-  },
-  analista: {
-    password:
-      "4e66af5f21f4eedce914e76bfb3c1c8e5e5f1c46b3651b07f5a5a8e8e3f77d6e", // analista123 en SHA-256
-    user: {
-      id: "3",
-      username: "analista",
-      email: "analista@empresa.com",
-      rol: "Analista",
-      nombre: "Usuario Analista",
-    },
-  },
-  coordinador: {
-    password:
-      "d404559f602eab6fd602ac7680dacbfaadd13630335e951f097af3900e9de176", // coord123 en SHA-256
-    user: {
-      id: "4",
-      username: "coordinador",
-      email: "coordinador@empresa.com",
-      rol: "Coordinador",
-      nombre: "Usuario Coordinador",
-    },
-  },
-  oficios: {
-    password:
-      "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", // password en SHA-256
-    user: {
-      id: "5",
-      username: "oficios",
-      email: "oficios@empresa.com",
-      rol: "Consultor Oficios",
-      nombre: "Consultor de Oficios",
-    },
-  },
-  ciga: {
-    password:
-      "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", // password en SHA-256
-    user: {
-      id: "6",
-      username: "ciga",
-      email: "ciga@empresa.com",
-      rol: "Consultor CIGA",
-      nombre: "Consultor CIGA",
-    },
-  },
-  escuelas: {
-    password:
-      "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", // password en SHA-256
-    user: {
-      id: "7",
-      username: "escuelas",
-      email: "escuelas@empresa.com",
-      rol: "Consultor Escuelas",
-      nombre: "Consultor de Escuelas",
-    },
-  },
-  pct: {
-    password:
-      "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", // password en SHA-256
-    user: {
-      id: "8",
-      username: "pct",
-      email: "pct@empresa.com",
-      rol: "Consultor PCT",
-      nombre: "Consultor PCT",
-    },
-  },
-};
-
-/**
- * Simula llamada al API de autenticación
- */
-async function mockAuthAPI(
+async function apiAuth(
   credentials: LoginCredentials
 ): Promise<AuthResponse> {
-  // Simular delay del servidor
-  await new Promise((resolve) => setTimeout(resolve, 800));
+  try {
+    // 1. Consultamos la lista de usuarios reales desde el backend
+    const response = await fetch(API_URL, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-  const hashedPassword = await hashPassword(credentials.password);
-  const userRecord = MOCK_USERS[credentials.username];
+    if (!response.ok) {
+      return {
+        success: false,
+        message: "No se pudo conectar con el servidor de credenciales.",
+      };
+    }
 
-  if (!userRecord || userRecord.password !== hashedPassword) {
+    const usuarios: any[] = await response.json();
+
+    // 2. Pasamos la contraseña ingresada por el algoritmo SHA-256 del front
+    const hashedPassword = await hashPassword(credentials.password);
+
+    // 3. Buscamos el registro que coincida (nombre y password_user con hash)
+    const userRecord = usuarios.find(
+      (u) =>
+        u.nombre?.toLowerCase() === credentials.username.toLowerCase() &&
+        u.password_user === hashedPassword
+    );
+
+    if (!userRecord) {
+      return {
+        success: false,
+        message: "Usuario o contraseña incorrectos",
+      };
+    }
+
+    // 4. Mapeamos el rol de minúsculas (db) a formato Capitalizado (frontend)
+    // Ejemplo: "developer" -> "Developer"
+    const normalRole = (userRecord.rol.charAt(0).toUpperCase() + userRecord.rol.slice(1)) as UserRole;
+
+    // 5. Estructuramos la respuesta exitosa para el estado global
+    return {
+      success: true,
+      user: {
+        id: userRecord.id?.toString() || "gen-" + Math.random().toString(36).substring(4),
+        username: userRecord.nombre,
+        email: userRecord.email || `${userRecord.nombre.toLowerCase()}@empresa.com`,
+        rol: normalRole,
+        nombre: userRecord.nombre,
+      },
+      token: Math.random().toString(36).substring(2) + Date.now().toString(36),
+    };
+
+  } catch (error) {
+    console.error("Error en el servicio de autenticación:", error);
     return {
       success: false,
-      message: "Usuario o contraseña incorrectos",
+      message: "Error de red al conectar con el servidor de base de datos.",
     };
   }
-
-  return {
-    success: true,
-    user: userRecord.user,
-    token: generateToken(),
-  };
 }
 
 /**
- * Genera un token aleatorio
- */
-function generateToken(): string {
-  return (
-    Math.random().toString(36).substring(2) +
-    Date.now().toString(36) +
-    Math.random().toString(36).substring(2)
-  );
-}
-
-/**
- * LOGIN: Autentica al usuario y crea sesión
+ * LOGIN: Autentica al usuario y crea sesión en el LocalStorage
  */
 export async function login(
   credentials: LoginCredentials
 ): Promise<AuthResponse> {
   try {
-    const response = await mockAuthAPI(credentials);
+    const response = await apiAuth(credentials);
 
     if (response.success && response.user && response.token) {
       const session: Session = {
@@ -154,7 +90,7 @@ export async function login(
         createdAt: Date.now(),
       };
 
-      // Encriptar y guardar sesión
+      // Encriptar y guardar sesión en LocalStorage
       const encryptedSession = encryptData(session);
       localStorage.setItem(SESSION_STORAGE_KEY, encryptedSession);
     }
@@ -163,13 +99,13 @@ export async function login(
   } catch (error) {
     return {
       success: false,
-      message: "Error al iniciar sesión",
+      message: "Error crítico al procesar el inicio de sesión",
     };
   }
 }
 
 /**
- * GET SESSION: Obtiene la sesión actual
+ * GET SESSION: Obtiene y desencripta la sesión actual del almacenamiento
  */
 export function getSession(): Session | null {
   try {
@@ -178,7 +114,6 @@ export function getSession(): Session | null {
 
     const session = decryptData<Session>(encryptedSession);
     if (!session) {
-      // Si hay error al desencriptar, limpiamos la sesión corrupta
       localStorage.removeItem(SESSION_STORAGE_KEY);
       return null;
     }
@@ -192,7 +127,6 @@ export function getSession(): Session | null {
     return session;
   } catch (error) {
     console.error("Error obteniendo sesión:", error);
-    // Limpiar sesión corrupta
     localStorage.removeItem(SESSION_STORAGE_KEY);
     return null;
   }
@@ -206,7 +140,7 @@ export function isAuthenticated(): boolean {
 }
 
 /**
- * GET CURRENT USER: Obtiene el usuario actual
+ * GET CURRENT USER: Obtiene el objeto del usuario logueado
  */
 export function getCurrentUser(): User | null {
   const session = getSession();
@@ -214,7 +148,7 @@ export function getCurrentUser(): User | null {
 }
 
 /**
- * HAS ROLE: Verifica si el usuario tiene un rol específico
+ * HAS ROLE: Verifica si el usuario cuenta con los roles solicitados
  */
 export function hasRole(role: UserRole | UserRole[]): boolean {
   const user = getCurrentUser();
@@ -228,14 +162,14 @@ export function hasRole(role: UserRole | UserRole[]): boolean {
 }
 
 /**
- * LOGOUT: Cierra la sesión
+ * LOGOUT: Cierra la sesión borrando los tokens locales
  */
 export function logout(): void {
   localStorage.removeItem(SESSION_STORAGE_KEY);
 }
 
 /**
- * RENEW SESSION: Renueva la sesión
+ * RENEW SESSION: Extiende el tiempo de expiración de la sesión actual
  */
 export async function renewSession(): Promise<boolean> {
   const session = getSession();
@@ -249,7 +183,7 @@ export async function renewSession(): Promise<boolean> {
 }
 
 /**
- * GET SESSION TIME REMAINING: Tiempo restante en minutos
+ * GET SESSION TIME REMAINING: Obtiene el tiempo restante en minutos
  */
 export function getSessionTimeRemaining(): number {
   const session = getSession();

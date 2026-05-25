@@ -206,7 +206,6 @@ export function AdministracionUsuarios({
                 ? 'bg-gray-700 border-gray-600 text-gray-100' 
                 : 'border-gray-300'
             }`}
-            style={{ focusRing: "#C09447" }}
           />
         </div>
       </div>
