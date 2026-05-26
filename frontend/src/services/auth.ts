@@ -1,80 +1,73 @@
 import { User, Session, LoginCredentials, AuthResponse } from "../types/auth";
-import { encryptData, decryptData, hashPassword } from "../utils/crypto";
+import { encryptData, decryptData } from "../utils/crypto";
 import { UserRole } from "../types/roles";
 
 const SESSION_STORAGE_KEY = "app_session";
 const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 horas
-const API_URL = "https://ft-api-nexxusms.duckdns.org/api/sql/usuarios";
+const LOGIN_API_URL = "https://ft-api-nexxusms.duckdns.org/api/sql/usuarios/login";
 
 /**
- * Conexión real al API de autenticación en SQL Server
+ * Conexión real al endpoint POST /login del Backend
  */
 async function apiAuth(
   credentials: LoginCredentials
 ): Promise<AuthResponse> {
   try {
-    // 1. Consultamos la lista de usuarios reales desde el backend
-    const response = await fetch(API_URL, {
-      method: "GET",
+    console.log("🚀 [auth.ts] Enviando POST /login para:", credentials.username);
+
+    // 1. Petición POST con texto plano directo hacia el backend
+    const response = await fetch(LOGIN_API_URL, {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
+      body: JSON.stringify({
+        nombre: credentials.username,
+        password_user: credentials.password // Texto plano puro para hacer match directo
+      }),
     });
 
+    // 2. Si el backend responde con error (401, etc.)
     if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error("❌ [auth.ts] Error devuelto por el backend:", errorData);
       return {
         success: false,
-        message: "No se pudo conectar con el servidor de credenciales.",
+        message: errorData.error || "Usuario o contraseña incorrectos.",
       };
     }
 
-    const usuarios: any[] = await response.json();
+    // 3. Respuesta exitosa del backend
+    const userRecord = await response.json();
+    console.log("✅ [auth.ts] Autenticado con éxito. Datos recibidos:", userRecord);
 
-    // 2. Pasamos la contraseña ingresada por el algoritmo SHA-256 del front
-    const hashedPassword = await hashPassword(credentials.password);
+    // 4. Normalizar el rol de minúsculas de la BD a Capitalizado para el Frontend
+    const dbRole = userRecord.rol || "Capturador";
+    const normalRole = (dbRole.charAt(0).toUpperCase() + dbRole.slice(1)) as UserRole;
 
-    // 3. Buscamos el registro que coincida (nombre y password_user con hash)
-    const userRecord = usuarios.find(
-      (u) =>
-        u.nombre?.toLowerCase() === credentials.username.toLowerCase() &&
-        u.password_user === hashedPassword
-    );
-
-    if (!userRecord) {
-      return {
-        success: false,
-        message: "Usuario o contraseña incorrectos",
-      };
-    }
-
-    // 4. Mapeamos el rol de minúsculas (db) a formato Capitalizado (frontend)
-    // Ejemplo: "developer" -> "Developer"
-    const normalRole = (userRecord.rol.charAt(0).toUpperCase() + userRecord.rol.slice(1)) as UserRole;
-
-    // 5. Estructuramos la respuesta exitosa para el estado global
     return {
       success: true,
       user: {
-        id: userRecord.id?.toString() || "gen-" + Math.random().toString(36).substring(4),
+        id: (userRecord.idUsuario || userRecord.id || "1").toString(),
         username: userRecord.nombre,
         email: userRecord.email || `${userRecord.nombre.toLowerCase()}@empresa.com`,
         rol: normalRole,
         nombre: userRecord.nombre,
       },
-      token: Math.random().toString(36).substring(2) + Date.now().toString(36),
+      token: "session-token-" + Math.random().toString(36).substring(2),
     };
 
   } catch (error) {
-    console.error("Error en el servicio de autenticación:", error);
+    console.error("💥 [auth.ts] Error crítico de red:", error);
     return {
       success: false,
-      message: "Error de red al conectar con el servidor de base de datos.",
+      message: "No se pudo conectar con el servidor. Verifica tu internet o proxy.",
     };
   }
 }
 
 /**
- * LOGIN: Autentica al usuario y crea sesión en el LocalStorage
+ * LOGIN: Autentica al usuario mediante el API y guarda la sesión cifrada
  */
 export async function login(
   credentials: LoginCredentials
@@ -90,7 +83,6 @@ export async function login(
         createdAt: Date.now(),
       };
 
-      // Encriptar y guardar sesión en LocalStorage
       const encryptedSession = encryptData(session);
       localStorage.setItem(SESSION_STORAGE_KEY, encryptedSession);
     }
@@ -104,9 +96,6 @@ export async function login(
   }
 }
 
-/**
- * GET SESSION: Obtiene y desencripta la sesión actual del almacenamiento
- */
 export function getSession(): Session | null {
   try {
     const encryptedSession = localStorage.getItem(SESSION_STORAGE_KEY);
@@ -118,7 +107,6 @@ export function getSession(): Session | null {
       return null;
     }
 
-    // Verificar si la sesión ha expirado
     if (Date.now() > session.expiresAt) {
       logout();
       return null;
@@ -126,30 +114,20 @@ export function getSession(): Session | null {
 
     return session;
   } catch (error) {
-    console.error("Error obteniendo sesión:", error);
     localStorage.removeItem(SESSION_STORAGE_KEY);
     return null;
   }
 }
 
-/**
- * IS AUTHENTICATED: Verifica si hay sesión activa
- */
 export function isAuthenticated(): boolean {
   return getSession() !== null;
 }
 
-/**
- * GET CURRENT USER: Obtiene el objeto del usuario logueado
- */
 export function getCurrentUser(): User | null {
   const session = getSession();
   return session?.user || null;
 }
 
-/**
- * HAS ROLE: Verifica si el usuario cuenta con los roles solicitados
- */
 export function hasRole(role: UserRole | UserRole[]): boolean {
   const user = getCurrentUser();
   if (!user) return false;
@@ -157,34 +135,23 @@ export function hasRole(role: UserRole | UserRole[]): boolean {
   if (Array.isArray(role)) {
     return role.includes(user.rol);
   }
-
   return user.rol === role;
 }
 
-/**
- * LOGOUT: Cierra la sesión borrando los tokens locales
- */
 export function logout(): void {
   localStorage.removeItem(SESSION_STORAGE_KEY);
 }
 
-/**
- * RENEW SESSION: Extiende el tiempo de expiración de la sesión actual
- */
-export async function renewSession(): Promise<boolean> {
+export function renewSession(): Promise<boolean> {
   const session = getSession();
-  if (!session) return false;
+  if (!session) return Promise.resolve(false);
 
   session.expiresAt = Date.now() + SESSION_DURATION;
   const encryptedSession = encryptData(session);
   localStorage.setItem(SESSION_STORAGE_KEY, encryptedSession);
-
-  return true;
+  return Promise.resolve(true);
 }
 
-/**
- * GET SESSION TIME REMAINING: Obtiene el tiempo restante en minutos
- */
 export function getSessionTimeRemaining(): number {
   const session = getSession();
   if (!session) return 0;

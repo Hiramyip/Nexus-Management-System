@@ -1,17 +1,11 @@
 import { useState } from "react";
 import { LogIn, AlertCircle } from "lucide-react";
-import { Session, User } from "../types/auth";
-import { UserRole } from "../types/roles";
-import { encryptData } from "../utils/crypto";
+import { login } from "../services/auth"; // <-- Importamos la función centralizada de tu auth.ts
 
 interface LoginCredentials {
   username: string;
   password: string;
 }
-
-const SESSION_STORAGE_KEY = "app_session";
-const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 horas
-const API_BASE_URL = "https://ft-api-nexxusms.duckdns.org/api/sql/usuarios";
 
 export function Login({ onLoginSuccess }: { onLoginSuccess: () => void }) {
   const [credentials, setCredentials] = useState<LoginCredentials>({
@@ -26,63 +20,19 @@ export function Login({ onLoginSuccess }: { onLoginSuccess: () => void }) {
     setError("");
     setIsLoading(true);
 
-    try {
-      // 1. Consumir el backend real para obtener la lista de usuarios
-      const response = await fetch(API_BASE_URL, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+    console.log("➡️ [login.tsx] Formulario enviado. Conectando con auth.ts...");
 
-      if (!response.ok) {
-        throw new Error("No se pudo conectar con el servidor de autenticación.");
-      }
+    // Llamamos directamente al servicio centralizado
+    const response = await login(credentials);
 
-      const usuarios: any[] = await response.json();
+    setIsLoading(false);
 
-      // 2. Buscar si existe el usuario ingresado y si coincide la contraseña (password_user)
-      // Nota: Asumiendo que 'username' mapea contra el campo 'nombre' del backend según tu cURL.
-      const userFound = usuarios.find(
-        (u) =>
-          u.nombre?.toLowerCase() === credentials.username.toLowerCase() &&
-          u.password_user === credentials.password
-      );
-
-      if (!userFound) {
-        throw new Error("Usuario o contraseña incorrectos.");
-      }
-
-      // 3. Mapear el usuario del backend al formato que espera tu Frontend (types/auth.ts)
-      // Normalizamos el rol a minúscula/mayúscula según requiera tu sistema estático
-      const mappedUser: User = {
-        id: userFound.id?.toString() || "gen-" + Math.random().toString(36).substring(4),
-        username: userFound.nombre,
-        email: userFound.email || `${userFound.nombre.toLowerCase()}@empresa.com`,
-        rol: (userFound.rol.charAt(0).toUpperCase() + userFound.rol.slice(1)) as UserRole, 
-        nombre: userFound.nombre,
-      };
-
-      // 4. Generar una sesión firmada/encriptada para el LocalStorage
-      const token = btoa(`session-${mappedUser.id}-${Date.now()}`); // Token simulado seguro a nivel cliente
-
-      const session: Session = {
-        user: mappedUser,
-        token: token,
-        expiresAt: Date.now() + SESSION_DURATION,
-        createdAt: Date.now(),
-      };
-
-      // 5. Encriptar usando tu utilería nativa crypto.ts y guardar preferencia
-      const encryptedSession = encryptData(session);
-      localStorage.setItem(SESSION_STORAGE_KEY, encryptedSession);
-      
-      setIsLoading(false);
+    if (response.success) {
+      console.log("🎉 [login.tsx] Login correcto, ejecutando redirección...");
       onLoginSuccess();
-
-    } catch (err: any) {
-      setIsLoading(false);
-      setError(err.message || "Ocurrió un error inesperado al intentar iniciar sesión.");
+    } else {
+      // Captura el mensaje de error personalizado que configuramos en auth.ts
+      setError(response.message || "Usuario o contraseña incorrectos.");
     }
   };
 
@@ -179,9 +129,7 @@ export function Login({ onLoginSuccess }: { onLoginSuccess: () => void }) {
               >
                 {isLoading ? (
                   <>
-                    <div
-                      className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"
-                    />
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     <span>Verificando credenciales...</span>
                   </>
                 ) : (
