@@ -34,9 +34,41 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 const EXCEL_PROCESSOR_URL = process.env.EXCEL_PROCESSOR_URL || 'http://localhost:8003';
 
-app.use(cors());
-app.use(express.json());
-app.use(requestInterceptor);
+// =========================================================
+// 1. COLOCA EL NUEVO BLOQUE DE CORS COMPLETO AQUÍ ARRIBA:
+// =========================================================
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'https://ft-nexxusms.duckdns.org',
+      'http://localhost:3000',
+      'https://ft-api-nexxusms.duckdns.org',
+      'http://localhost:8002'
+    ];
+
+    if (allowedOrigins.indexOf(origin) !== -1 || origin.startsWith('http://localhost:')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Bloqueado por políticas de CORS de NexxusMS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
+}));
+
+// Responder inmediatamente a los preflights de Chrome (OPTIONS)
+app.options('*', (req, res) => {
+  res.sendStatus(200);
+});
+
+// =========================================================
+// 2. ABAJO SE QUEDAN TUS OTRAS DOS LÍNEAS ESENCIALES:
+// =========================================================
+app.use(express.json()); // <-- ¡CRUCIAL! No la borres o req.body será undefined
+app.use(requestInterceptor); // <-- ¡MANTENER! Tu validador de peticiones
 
 // Status endpoint (keeps original logic)
 app.get('/api/status', async (req, res) => {
