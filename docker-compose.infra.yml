@@ -67,4 +67,4 @@ volumes:
 
 networks:
   nexus-network:
-    external: true
+    external: false

@@ -1,11 +1,11 @@
 version: '3.8'
-name: nexusmanager-prod
+name: nexusmanager-prod-devops
 
 services:
   # --- 3. BACKEND API PRINCIPAL (TYPESCRIPT) ---
   backend-pd:
     build: ./backend
-    container_name: gestion_backend_ts_prod
+    container_name: gestion_backend_ts_prod-devops
     restart: always
     ports:
       - "8000:8000"
@@ -23,7 +23,7 @@ services:
   # --- 4. PROCESADOR DE EXCEL (PYTHON) ---
   excel-processor-pd:
     build: ./excel-processor
-    container_name: gestion_python_worker_prod
+    container_name: gestion_python_worker_prod-devops
     restart: always
     ports:
       - "8001:8001"
@@ -39,7 +39,7 @@ services:
   # --- 5. FRONTEND (TYPESCRIPT) ---
   frontend-pd:
     build: ./frontend
-    container_name: gestion_frontend_prod
+    container_name: gestion_frontend_prod-devops
     restart: always
     depends_on:
       - backend-pd

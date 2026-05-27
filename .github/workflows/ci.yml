@@ -26,6 +26,12 @@ jobs:
           cd backend
           npm ci
 
+      - name: Generar Clientes de Prisma (SQL Server y MongoDB)
+        run: |
+          cd backend
+          npx prisma generate --schema=../prisma/sqlserver/schema.prisma
+          npx prisma generate --schema=../prisma/mongodb/schema.prisma
+
       # CUMPLE CON: "El DevOps debera revisar que el codigo compile" (RF-DO-03)
       # En Node.js (JavaScript/TypeScript), el build linter o compilación valida errores sintácticos.
       - name: Compilar / Validar Sintaxis del Backend
@@ -55,6 +61,12 @@ jobs:
         run: |
           cd frontend
           npm ci
+
+      - name: Generar Clientes de Prisma (SQL Server y MongoDB)
+        run: |
+          cd frontend
+          npx prisma generate --schema=../prisma/sqlserver/schema.prisma
+          npx prisma generate --schema=../prisma/mongodb/schema.prisma
 
       # CUMPLE CON: Validar que el código de la interfaz no tenga errores sintácticos
       - name: Compilar Frontend (Build Test)
