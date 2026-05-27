@@ -14,8 +14,13 @@ export class EventoInicioSesionService {
     return e;
   }
 
-  async create(): Promise<EventoInicioSesionEntity> {
-    return this.repo.create({});
+  async create(data: {
+    nombreUsuario: string;
+    rol: string;
+    fechaInicio?: Date;
+    ip?: string;
+  }): Promise<EventoInicioSesionEntity> {
+    return this.repo.create(data);
   }
 
   async delete(id: string): Promise<void> {

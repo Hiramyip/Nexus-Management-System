@@ -23,12 +23,14 @@ import programacionDiariaRoutes from './routes/sql/programacionDiaria.routes.js'
 import puentesRoutes from './routes/sql/puentes.routes.js';
 import tiraderosGestionAmbientalRoutes from './routes/sql/tiraderosGestionAmbiental.routes.js';
 import tiraderosInspeccionRoutes from './routes/sql/tiraderosInspeccion.routes.js';
+import capturaRoutes from './routes/sql/captura.routes.js';
 
 // Mongo Routes
 import eventoActividadDatosRoutes from './routes/mongo/eventoActividadDatos.routes.js';
 import eventoInicioSesionRoutes from './routes/mongo/eventoInicioSesion.routes.js';
 import infoOficiosRoutes from './routes/mongo/infoOficios.routes.js';
 import logReportesGeneradosRoutes from './routes/mongo/logReportesGenerados.routes.js';
+import eventoModificacionRoutes from './routes/mongo/eventoModificacion.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -120,12 +122,14 @@ app.use('/api/sql/programacionDiaria', programacionDiariaRoutes);
 app.use('/api/sql/puentes', puentesRoutes);
 app.use('/api/sql/tiraderosGestionAmbiental', tiraderosGestionAmbientalRoutes);
 app.use('/api/sql/tiraderosInspeccion', tiraderosInspeccionRoutes);
+app.use('/api/sql/captura', capturaRoutes);
 
 // Mount Mongo routes
 app.use('/api/mongo/eventoActividadDatos', eventoActividadDatosRoutes);
 app.use('/api/mongo/eventoInicioSesion', eventoInicioSesionRoutes);
 app.use('/api/mongo/infoOficios', infoOficiosRoutes);
 app.use('/api/mongo/logReportesGenerados', logReportesGeneradosRoutes);
+app.use('/api/mongo/eventoModificacion', eventoModificacionRoutes);
 
 // Legacy route aliases for backward compatibility
 app.use('/api/mongo/sesiones', eventoInicioSesionRoutes);
