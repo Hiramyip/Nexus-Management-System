@@ -10,7 +10,7 @@ export class EventoActividadDatosRepository
 {
   async findAll(): Promise<EventoActividadDatosEntity[]> {
     const rows = await mongoDb.eventoActividadDatos.findMany();
-    return rows.map((r) => new EventoActividadDatosEntity(r));
+    return rows.map((r: any) => new EventoActividadDatosEntity(r));
   }
 
   async findById(id: string): Promise<EventoActividadDatosEntity | null> {

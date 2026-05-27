@@ -13,13 +13,44 @@ model eventoActividadDatos {
 }
 
 model eventoInicioSesion {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  nombreUsuario String
+  rol           String
+  fechaInicio   DateTime @default(now())
+  ip            String?
 }
 
 model infoOficios {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  idOficio            Int
+  idGrupoTrabajo      Int
+  ubicacion           String
+  fecha               DateTime @default(now())
+  metroLineal         Int?
+  metroCuadrado       Int?
+  metroCubico         Float?
+  peso                Float?
+  usuarioModificacion String
+  fechaModificacion   DateTime @default(now())
 }
 
 model logReportesGenerados {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  tipoReporte     String
+  fechaGeneracion DateTime @default(now())
+  usuario         String
+  parametros      Json?
+  exito           Boolean  @default(true)
+  mensaje         String?
+}
+
+model eventoModificacion {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  entidad       String
+  registroId    String
+  campo         String
+  valorAnterior String?
+  valorNuevo    String?
+  usuario       String
+  fecha         DateTime @default(now())
 }
