@@ -1,0 +1,253 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("SQL_SERVER_URL")
+}
+
+model CasasQuemadas {
+  idCasaQuemada  Int          @id(map: "PK__CasasQue__C234F3C1E5BBC817") @default(autoincrement())
+  idGrupoTrabajo Int
+  ubicacion      String       @db.VarChar(100)
+  fecha          DateTime?    @db.Date
+  metroLineal    Int?
+  metroCuadrado  Int?
+  metroCubico    Decimal?     @db.Decimal(10, 2)
+  peso           Decimal?     @db.Decimal(10, 2)
+  GrupoTrabajo   GrupoTrabajo @relation(fields: [idGrupoTrabajo], references: [idGrupoTrabajo], onUpdate: NoAction, map: "FK__CasasQuema__peso__59FA5E80")
+}
+
+model Ciga {
+  idCiga           Int          @id(map: "PK__Ciga__8135CE0E70832B45") @default(autoincrement())
+  idGrupoTrabajo   Int
+  numeroVentanilla Int
+  folioCiga        String       @db.VarChar(100)
+  ubicacion        String       @db.VarChar(100)
+  fecha            DateTime?    @db.Date
+  metroLineal      Int?
+  metroCuadrado    Int?
+  metroCubico      Decimal?     @db.Decimal(10, 2)
+  peso             Decimal?     @db.Decimal(10, 2)
+  GrupoTrabajo     GrupoTrabajo @relation(fields: [idGrupoTrabajo], references: [idGrupoTrabajo], onUpdate: NoAction, map: "FK__Ciga__peso__5441852A")
+}
+
+model ConsejoParticipacionSocial {
+  idConsejo             Int          @id(map: "PK__ConsejoP__3DB777AD64598E57") @default(autoincrement())
+  idGrupoTrabajo        Int
+  ubicacion             String       @db.VarChar(100)
+  fecha                 DateTime?    @db.Date
+  actividadesRealizadas String       @db.Text
+  metroLineal           Int?
+  metroCuadrado         Int?
+  metroCubico           Decimal?     @db.Decimal(10, 2)
+  peso                  Decimal?     @db.Decimal(10, 2)
+  GrupoTrabajo          GrupoTrabajo @relation(fields: [idGrupoTrabajo], references: [idGrupoTrabajo], onUpdate: NoAction, map: "FK__ConsejoPar__peso__73BA3083")
+}
+
+model Descacharrizacion {
+  idDescacharrizacion    Int          @id(map: "PK__Descacha__A86E4F91A0FD0FF6") @default(autoincrement())
+  idGrupoTrabajo         Int
+  ubicacion              String       @db.VarChar(100)
+  fecha                  DateTime?    @db.Date
+  pesoIngresadoDocumento Decimal?     @db.Decimal(10, 2)
+  metroLineal            Int?
+  metroCuadrado          Int?
+  metroCubico            Decimal?     @db.Decimal(10, 2)
+  peso                   Decimal?     @db.Decimal(10, 2)
+  GrupoTrabajo           GrupoTrabajo @relation(fields: [idGrupoTrabajo], references: [idGrupoTrabajo], onUpdate: NoAction, map: "FK__Descacharr__peso__6B24EA82")
+}
+
+model EmpleoColonia {
+  idEmpleoColonia       Int          @id(map: "PK__EmpleoCo__01B36EC992A86179") @default(autoincrement())
+  idGrupoTrabajo        Int
+  ubicacion             String       @db.VarChar(100)
+  fecha                 DateTime?    @db.Date
+  actividadesRealizadas String       @db.Text
+  metroLineal           Int?
+  metroCuadrado         Int?
+  metroCubico           Decimal?     @db.Decimal(10, 2)
+  peso                  Decimal?     @db.Decimal(10, 2)
+  GrupoTrabajo          GrupoTrabajo @relation(fields: [idGrupoTrabajo], references: [idGrupoTrabajo], onUpdate: NoAction, map: "FK__EmpleoColo__peso__70DDC3D8")
+}
+
+model EntregaObras {
+  idEntregaObra  Int          @id(map: "PK__EntregaO__E7063EE4BF163B3F") @default(autoincrement())
+  idGrupoTrabajo Int
+  ubicacion      String       @db.VarChar(100)
+  fecha          DateTime?    @db.Date
+  metroLineal    Int?
+  metroCuadrado  Int?
+  metroCubico    Decimal?     @db.Decimal(10, 2)
+  peso           Decimal?     @db.Decimal(10, 2)
+  GrupoTrabajo   GrupoTrabajo @relation(fields: [idGrupoTrabajo], references: [idGrupoTrabajo], onUpdate: NoAction, map: "FK__EntregaObr__peso__571DF1D5")
+}
+
+model Escuelas {
+  idEscuela             Int          @id(map: "PK__Escuelas__9F67B2894789D808") @default(autoincrement())
+  idGrupoTrabajo        Int
+  ubicacion             String       @db.VarChar(100)
+  fecha                 DateTime?    @db.Date
+  actividadesRealizadas String       @db.Text
+  metroLineal           Int?
+  metroCuadrado         Int?
+  metroCubico           Decimal?     @db.Decimal(10, 2)
+  peso                  Decimal?     @db.Decimal(10, 2)
+  GrupoTrabajo          GrupoTrabajo @relation(fields: [idGrupoTrabajo], references: [idGrupoTrabajo], onUpdate: NoAction, map: "FK__Escuelas__peso__5CD6CB2B")
+}
+
+model EventosEspeciales {
+  idEventoEspecial      Int          @id(map: "PK__EventosE__462A2C732A14D7FF") @default(autoincrement())
+  idGrupoTrabajo        Int
+  ubicacion             String       @db.VarChar(100)
+  fecha                 DateTime?    @db.Date
+  actividadesRealizadas String       @db.Text
+  metroLineal           Int?
+  metroCuadrado         Int?
+  metroCubico           Decimal?     @db.Decimal(10, 2)
+  peso                  Decimal?     @db.Decimal(10, 2)
+  GrupoTrabajo          GrupoTrabajo @relation(fields: [idGrupoTrabajo], references: [idGrupoTrabajo], onUpdate: NoAction, map: "FK__EventosEsp__peso__68487DD7")
+}
+
+model GrupoTrabajo {
+  idGrupoTrabajo             Int                          @id(map: "PK__GrupoTra__D631ED502B4DE19E") @default(autoincrement())
+  encargado                  String                       @db.VarChar(40)
+  CasasQuemadas              CasasQuemadas[]
+  Ciga                       Ciga[]
+  ConsejoParticipacionSocial ConsejoParticipacionSocial[]
+  Descacharrizacion          Descacharrizacion[]
+  EmpleoColonia              EmpleoColonia[]
+  EntregaObras               EntregaObras[]
+  Escuelas                   Escuelas[]
+  EventosEspeciales          EventosEspeciales[]
+  Oficios                    Oficios[]
+  Panteones                  Panteones[]
+  PCT                        PCT[]
+  PeticionesDirectas         PeticionesDirectas[]
+  ProgramacionDiaria         ProgramacionDiaria[]
+  Puentes                    Puentes[]
+  TiraderosGestionAmbiental  TiraderosGestionAmbiental[]
+  TiraderosInspeccion        TiraderosInspeccion[]
+}
+
+model Oficios {
+  idOficio       Int          @id(map: "PK__Oficios__50DF5FA3BDFF31FA") @default(autoincrement())
+  idGrupoTrabajo Int
+  ubicacion      String       @db.VarChar(100)
+  fecha          DateTime?    @db.Date
+  metroLineal    Int?
+  metroCuadrado  Int?
+  metroCubico    Decimal?     @db.Decimal(10, 2)
+  peso           Decimal?     @db.Decimal(10, 2)
+  GrupoTrabajo   GrupoTrabajo @relation(fields: [idGrupoTrabajo], references: [idGrupoTrabajo], onUpdate: NoAction, map: "FK__Oficios__peso__5165187F")
+}
+
+model Panteones {
+  idPanteon             Int          @id(map: "PK__Panteone__542CF3B995080B33") @default(autoincrement())
+  idGrupoTrabajo        Int
+  ubicacion             String       @db.VarChar(100)
+  fecha                 DateTime?    @db.Date
+  actividadesRealizadas String       @db.Text
+  metroLineal           Int?
+  metroCuadrado         Int?
+  metroCubico           Decimal?     @db.Decimal(10, 2)
+  peso                  Decimal?     @db.Decimal(10, 2)
+  GrupoTrabajo          GrupoTrabajo @relation(fields: [idGrupoTrabajo], references: [idGrupoTrabajo], onUpdate: NoAction, map: "FK__Panteones__peso__5FB337D6")
+}
+
+model PCT {
+  idPCT            Int          @id(map: "PK__PCT__3D05330D9703F547") @default(autoincrement())
+  idGrupoTrabajo   Int
+  numeroReferencia Int?
+  tipoPeriodo      String       @db.VarChar(40)
+  estatus          String       @db.VarChar(40)
+  ubicacion        String       @db.VarChar(100)
+  fecha            DateTime?    @db.Date
+  metroLineal      Int?
+  metroCuadrado    Int?
+  metroCubico      Decimal?     @db.Decimal(10, 2)
+  peso             Decimal?     @db.Decimal(10, 2)
+  GrupoTrabajo     GrupoTrabajo @relation(fields: [idGrupoTrabajo], references: [idGrupoTrabajo], onUpdate: NoAction, map: "FK__PCT__peso__656C112C")
+}
+
+model PeticionesDirectas {
+  idPeticionDirecta     Int          @id(map: "PK__Peticion__4D91781EEC4CA522") @default(autoincrement())
+  idGrupoTrabajo        Int
+  ubicacion             String       @db.VarChar(100)
+  fecha                 DateTime?    @db.Date
+  actividadesRealizadas String       @db.Text
+  metroLineal           Int?
+  metroCuadrado         Int?
+  metroCubico           Decimal?     @db.Decimal(10, 2)
+  peso                  Decimal?     @db.Decimal(10, 2)
+  GrupoTrabajo          GrupoTrabajo @relation(fields: [idGrupoTrabajo], references: [idGrupoTrabajo], onUpdate: NoAction, map: "FK__Peticiones__peso__7C4F7684")
+}
+
+model ProgramacionDiaria {
+  idProgramacion        Int          @id(map: "PK__Programa__EA62461D9638B712") @default(autoincrement())
+  idGrupoTrabajo        Int
+  ubicacion             String       @db.VarChar(100)
+  fecha                 DateTime?    @db.Date
+  actividadesRealizadas String       @db.Text
+  metroLineal           Int?
+  metroCuadrado         Int?
+  metroCubico           Decimal?     @db.Decimal(10, 2)
+  peso                  Decimal?     @db.Decimal(10, 2)
+  GrupoTrabajo          GrupoTrabajo @relation(fields: [idGrupoTrabajo], references: [idGrupoTrabajo], onUpdate: NoAction, map: "FK__Programaci__peso__6E01572D")
+}
+
+model Puentes {
+  idPuente              Int          @id(map: "PK__Puentes__AC8498D8C17E79B1") @default(autoincrement())
+  idGrupoTrabajo        Int
+  ubicacion             String       @db.VarChar(100)
+  fecha                 DateTime?    @db.Date
+  actividadesRealizadas String       @db.Text
+  metroLineal           Int?
+  metroCuadrado         Int?
+  metroCubico           Decimal?     @db.Decimal(10, 2)
+  peso                  Decimal?     @db.Decimal(10, 2)
+  GrupoTrabajo          GrupoTrabajo @relation(fields: [idGrupoTrabajo], references: [idGrupoTrabajo], onUpdate: NoAction, map: "FK__Puentes__peso__628FA481")
+}
+
+model TiraderosGestionAmbiental {
+  idTiraderoGestion Int          @id(map: "PK__Tiradero__4D8DF791E96BE59C") @default(autoincrement())
+  idGrupoTrabajo    Int
+  ubicacion         String       @db.VarChar(100)
+  fecha             DateTime?    @db.Date
+  metroLineal       Int?
+  metroCuadrado     Int?
+  metroCubico       Decimal?     @db.Decimal(10, 2)
+  peso              Decimal?     @db.Decimal(10, 2)
+  GrupoTrabajo      GrupoTrabajo @relation(fields: [idGrupoTrabajo], references: [idGrupoTrabajo], onUpdate: NoAction, map: "FK__TiraderosG__peso__76969D2E")
+}
+
+model TiraderosInspeccion {
+  idTiraderoInspeccion Int          @id(map: "PK__Tiradero__80B99BB7943A4E88") @default(autoincrement())
+  idGrupoTrabajo       Int
+  ubicacion            String       @db.VarChar(100)
+  fecha                DateTime?    @db.Date
+  metroLineal          Int?
+  metroCuadrado        Int?
+  metroCubico          Decimal?     @db.Decimal(10, 2)
+  peso                 Decimal?     @db.Decimal(10, 2)
+  GrupoTrabajo         GrupoTrabajo @relation(fields: [idGrupoTrabajo], references: [idGrupoTrabajo], onUpdate: NoAction, map: "FK__TiraderosI__peso__797309D9")
+}
+
+model TransaccionesExcel {
+  idTransaccionExcel Int      @id(map: "PK__Transacc__BC75BBD397856418") @default(autoincrement())
+  idUsuario          Int
+  nombreArchivo      String   @db.VarChar(120)
+  fechaTransaccion   DateTime @db.Date
+  Usuarios           Usuarios @relation(fields: [idUsuario], references: [idUsuario], onUpdate: NoAction, map: "FK__Transacci__idUsu__4CA06362")
+}
+
+model Usuarios {
+  idUsuario          Int                  @id(map: "PK__Usuarios__645723A67334D64A") @default(autoincrement())
+  nombre             String               @db.VarChar(60)
+  password_user      String               @db.VarChar(255)
+  rol                String               @db.VarChar(50)
+  fechaRegistro      DateTime?            @db.Date
+  TransaccionesExcel TransaccionesExcel[]
+}
