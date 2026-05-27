@@ -45,14 +45,6 @@ interface DatosMensuales {
   peso: number;
 }
 
-// Ventanillas de CIGA
-const VENTANILLAS_CIGA = [
-  "Limpieza de Calle",
-  "Descacharrizacion",
-  "Tiradero Clandestino",
-  "Levantamiento de Animales Muertos",
-];
-
 // Datos mock con múltiples meses y años para el dashboard
 const getDatosMockCompletos = (): ReporteData[] => {
   return [
@@ -144,7 +136,6 @@ const getDatosMockCompletos = (): ReporteData[] => {
 
 export function GeneracionReportes({
   allowedReportTypes,
-  userRole,
 }: {
   allowedReportTypes?: string[];
   userRole: string;

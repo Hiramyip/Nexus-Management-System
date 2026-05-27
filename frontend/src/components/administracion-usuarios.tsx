@@ -13,7 +13,6 @@ interface Usuario {
 const API_URL = "https://ft-api-nexxusms.duckdns.org/api/sql/usuarios";
 
 export function AdministracionUsuarios({
-  currentUserRole,
 }: {
   currentUserRole: string;
 }) {
