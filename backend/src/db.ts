@@ -8,4 +8,5 @@ import { PrismaClient as SqlClient } from '../prisma/generated/prisma';
 import { PrismaClient as MongoClient } from '../prisma/mongodb/client';
 
 export const sqlDb = new SqlClient();
+
 export const mongoDb = new MongoClient();
