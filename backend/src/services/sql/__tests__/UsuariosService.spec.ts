@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { UsuariosService } from '../UsuariosService.js';
 import { UsuariosEntity } from '../../../entities/sql/Usuarios.entity.js';
-import bcrypt from 'bcryptjs';
 
 // Mocks hoisted por Vitest. Deben comenzar con 'mock' obligatoriamente.
 const mockFindAll = vi.fn();
@@ -10,14 +9,6 @@ const mockFindByNombre = vi.fn();
 const mockCreate = vi.fn();
 const mockUpdate = vi.fn();
 const mockDelete = vi.fn();
-
-// Mockear bcrypt
-vi.mock('bcryptjs', () => ({
-  default: {
-    hash: vi.fn(),
-    compare: vi.fn(),
-  },
-}));
 
 // Mock del repositorio usando clase ES6 para evitar incompatibilidades de constructor
 vi.mock('../../../repositories/sql/UsuariosRepository.js', () => {
@@ -69,7 +60,7 @@ describe('UsuariosService', () => {
     it('debería lanzar un error si el usuario no existe', async () => {
       mockFindById.mockResolvedValue(null);
 
-      await expect(service.getById(99)).rejects.toThrow('Usuario no encontrado');
+      await expect(service.getById(99)).rejects.toThrow('Usuario con id 99 no encontrado');
       expect(mockFindById).toHaveBeenCalledWith(99);
     });
   });
@@ -120,29 +111,26 @@ describe('UsuariosService', () => {
 
   describe('login', () => {
     it('debería autenticar exitosamente con credenciales válidas', async () => {
-      const mockUser = new UsuariosEntity({ idUsuario: 1, nombre: 'Coordinador1', password_user: 'hashedPassword', rol: 'Coordinador', fechaRegistro: new Date() });
+      const mockUser = new UsuariosEntity({ idUsuario: 1, nombre: 'Coordinador1', password_user: 'pass', rol: 'Coordinador', fechaRegistro: new Date() });
       mockFindByNombre.mockResolvedValue(mockUser);
-      (bcrypt.compare as any).mockResolvedValue(true);
 
       const result = await service.login('Coordinador1', 'pass');
 
       expect(result).toEqual(mockUser);
       expect(mockFindByNombre).toHaveBeenCalledWith('Coordinador1');
-      expect(bcrypt.compare).toHaveBeenCalledWith('pass', 'hashedPassword');
     });
 
     it('debería lanzar un error si el usuario no existe', async () => {
       mockFindByNombre.mockResolvedValue(null);
 
-      await expect(service.login('NoExiste', 'pass')).rejects.toThrow('Credenciales inválidas');
+      await expect(service.login('NoExiste', 'pass')).rejects.toThrow('Usuario no encontrado');
     });
 
     it('debería lanzar un error si la contraseña es incorrecta', async () => {
-      const mockUser = new UsuariosEntity({ idUsuario: 1, nombre: 'Admin', password_user: 'hashedPassword', rol: 'Developer', fechaRegistro: new Date() });
+      const mockUser = new UsuariosEntity({ idUsuario: 1, nombre: 'Admin', password_user: 'correcta', rol: 'Developer', fechaRegistro: new Date() });
       mockFindByNombre.mockResolvedValue(mockUser);
-      (bcrypt.compare as any).mockResolvedValue(false);
 
-      await expect(service.login('Admin', 'incorrecta')).rejects.toThrow('Credenciales inválidas');
+      await expect(service.login('Admin', 'incorrecta')).rejects.toThrow('Contraseña incorrecta');
     });
   });
 });
