@@ -11,7 +11,6 @@ router.get('/', async (_req: Request, res: Response) => {
     res.json(data.map((e) => e.toJSON()));
   } catch (e) {
     res.status(500).json({ error: (e as Error).message });
-    console.error("Error detallado en /usuarios:", e);
   }
 });
 
