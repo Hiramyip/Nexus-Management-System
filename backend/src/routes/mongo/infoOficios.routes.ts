@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { InfoOficiosService } from '../../services/mongo/InfoOficiosService.js';
+import { validateBody, validationSchemas } from '../../middleware/ValidationMiddleware.js';
 
 const router = Router();
 const service = new InfoOficiosService();
@@ -25,7 +26,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 // POST /api/mongo/infoOficios
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', validateBody(validationSchemas.infoOficios), async (req: Request, res: Response) => {
   try {
     const data = await service.create(req.body);
     res.status(201).json(data.toJSON());

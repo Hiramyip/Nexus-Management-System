@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { UsuariosService } from '../../services/sql/UsuariosService.js';
+import { validateBody, validationSchemas } from '../../middleware/ValidationMiddleware.js';
 
 const router = Router();
 const service = new UsuariosService();
@@ -26,7 +27,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 // POST /api/sql/usuarios
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', validateBody(validationSchemas.usuario), async (req: Request, res: Response) => {
   try {
     const { nombre, password_user, rol } = req.body as { nombre: string; password_user: string; rol: string };
     const data = await service.create({ nombre, password_user, rol });
@@ -57,7 +58,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
 });
 
 // POST /api/sql/usuarios/login
-router.post('/login', async (req: Request, res: Response) => {
+router.post('/login', validateBody(validationSchemas.login), async (req: Request, res: Response) => {
   try {
     const { nombre, password_user } = req.body as { nombre: string; password_user: string };
     const data = await service.login(nombre, password_user);
