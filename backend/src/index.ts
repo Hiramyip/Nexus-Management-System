@@ -31,6 +31,7 @@ import eventoInicioSesionRoutes from './routes/mongo/eventoInicioSesion.routes.j
 import infoOficiosRoutes from './routes/mongo/infoOficios.routes.js';
 import logReportesGeneradosRoutes from './routes/mongo/logReportesGenerados.routes.js';
 import eventoModificacionRoutes from './routes/mongo/eventoModificacion.routes.js';
+import eventoModificacionRoutes from './routes/mongo/eventoModificacion.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -100,6 +101,7 @@ app.use('/api/mongo/eventoActividadDatos', eventoActividadDatosRoutes);
 app.use('/api/mongo/eventoInicioSesion', eventoInicioSesionRoutes);
 app.use('/api/mongo/infoOficios', infoOficiosRoutes);
 app.use('/api/mongo/logReportesGenerados', logReportesGeneradosRoutes);
+app.use('/api/mongo/eventoModificacion', eventoModificacionRoutes);
 app.use('/api/mongo/eventoModificacion', eventoModificacionRoutes);
 
 // Legacy route aliases for backward compatibility

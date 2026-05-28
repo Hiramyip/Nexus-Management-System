@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Upload, Save, Edit2, X, Check, Eye } from "lucide-react";
+import { Upload, Save, Edit2, Check, Eye } from "lucide-react";
 import { useTheme } from "../contexts/theme-context";
 
 interface ActividadesRealizadas {
@@ -64,7 +64,6 @@ const VENTANILLAS_CIGA = [
 
 export function CapturaReportes({
   canEdit,
-  canViewTables,
 }: {
   canEdit: boolean;
   canViewTables: boolean;
@@ -586,7 +585,6 @@ export function CapturaReportes({
                                 e.target.value
                               )
                             }
-                            placeholder={reporte.tipo === "CIGA" ? "Requerido" : "N/A"}
                             disabled={reporte.tipo !== "CIGA"}
                             className={`w-full px-2 py-1 border rounded text-sm ${
                               isDark 

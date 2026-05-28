@@ -29,6 +29,7 @@ services:
       - "1433:1433"
     volumes:
       - sqlserver_data:/var/opt/mssql
+      - sql_backups:/var/opt/mssql/backup
     networks:
       - default
       - nexus-network
@@ -62,6 +63,7 @@ services:
 
 volumes:
   sqlserver_data:
+  sql_backups:
   mongodb_data:
 
 
