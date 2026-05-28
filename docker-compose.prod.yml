@@ -10,7 +10,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - SQL_SERVER_URL=mssql://dbadmin:${SQL_SA_PASSWORD}@sqlserver-pd:1433/gestion_db
+      - SQL_SERVER_URL=sqlserver://dbadmin:${SQL_SA_PASSWORD}@sqlserver-pd:1433/gestion_db?encrypt=true&trustServerCertificate=true
       - MONGO_URL=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb-pd:27017/
       - UPLOAD_DIR=/app/uploads
       - PYTHON_SERVICE_URL=http://excel-processor-pd:8001
