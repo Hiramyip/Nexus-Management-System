@@ -24,6 +24,7 @@ import puentesRoutes from './routes/sql/puentes.routes.js';
 import tiraderosGestionAmbientalRoutes from './routes/sql/tiraderosGestionAmbiental.routes.js';
 import tiraderosInspeccionRoutes from './routes/sql/tiraderosInspeccion.routes.js';
 import capturaRoutes from './routes/sql/captura.routes.js';
+import reportesRoutes from './routes/sql/reportes.routes.js';
 
 // Mongo Routes
 import eventoActividadDatosRoutes from './routes/mongo/eventoActividadDatos.routes.js';
@@ -123,6 +124,7 @@ app.use('/api/sql/puentes', puentesRoutes);
 app.use('/api/sql/tiraderosGestionAmbiental', tiraderosGestionAmbientalRoutes);
 app.use('/api/sql/tiraderosInspeccion', tiraderosInspeccionRoutes);
 app.use('/api/sql/captura', capturaRoutes);
+app.use('/api/sql/reportes', reportesRoutes);
 
 // Mount Mongo routes
 app.use('/api/mongo/eventoActividadDatos', eventoActividadDatosRoutes);
