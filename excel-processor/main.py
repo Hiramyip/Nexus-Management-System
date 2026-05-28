@@ -4,6 +4,8 @@ import pandas as pd
 import io
 import uuid
 import math
+import datetime
+
 
 app = FastAPI(
     title="Nexus Manager - Excel Processor",
@@ -166,4 +168,3 @@ async def process_excel(file: UploadFile = File(...)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error procesando el archivo Excel: {str(e)}")
-import datetime
