@@ -1,6 +1,5 @@
 import { Router, Request, Response } from 'express';
 import { EventoInicioSesionService } from '../../services/mongo/EventoInicioSesionService.js';
-import { validateBody, validationSchemas } from '../../middleware/ValidationMiddleware.js';
 
 const router = Router();
 const service = new EventoInicioSesionService();
@@ -26,7 +25,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 // POST /api/mongo/eventoInicioSesion
-router.post('/', validateBody(validationSchemas.eventoInicioSesion), async (req: Request, res: Response) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
     const { nombreUsuario, rol, fechaInicio, ip } = req.body;
     const data = await service.create({

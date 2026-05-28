@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import { sqlDb, mongoDb } from './db';
 import { requestInterceptor } from './services/RequestInterceptorService.js';
-import { errorHandler, notFoundHandler } from './middleware/ErrorHandler.js';
 
 // SQL Routes
 import grupoTrabajoRoutes from './routes/sql/grupoTrabajo.routes.js';
@@ -134,10 +133,6 @@ app.use('/api/mongo/eventoModificacion', eventoModificacionRoutes);
 
 // Legacy route aliases for backward compatibility
 app.use('/api/mongo/sesiones', eventoInicioSesionRoutes);
-
-// Middleware de manejo de errores (debe ir después de todas las rutas)
-app.use(notFoundHandler);
-app.use(errorHandler);
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
