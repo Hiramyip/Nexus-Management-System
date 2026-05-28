@@ -25,9 +25,9 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 // POST /api/mongo/logReportesGenerados
-router.post('/', async (_req: Request, res: Response) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
-    const data = await service.create();
+    const data = await service.create(req.body);
     res.status(201).json(data.toJSON());
   } catch (e) {
     res.status(500).json({ error: (e as Error).message });

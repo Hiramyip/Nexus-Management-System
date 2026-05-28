@@ -25,9 +25,15 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 // POST /api/mongo/eventoInicioSesion
-router.post('/', async (_req: Request, res: Response) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
-    const data = await service.create();
+    const { nombreUsuario, rol, fechaInicio, ip } = req.body;
+    const data = await service.create({
+      nombreUsuario,
+      rol,
+      fechaInicio: fechaInicio ? new Date(fechaInicio) : undefined,
+      ip: ip || req.ip,
+    });
     res.status(201).json(data.toJSON());
   } catch (e) {
     res.status(500).json({ error: (e as Error).message });
