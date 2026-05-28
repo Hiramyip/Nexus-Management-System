@@ -14,10 +14,7 @@ services:
     ports:
       - "8002:8000"
     environment:
-      # 1. Cambiamos 'mssql' por 'sqlserver'
-      # 2. Usamos el formato de punto y coma para evitar errores de dígitos inválidos
-      # 3. Apuntamos al contenedor 'sqlserver-pd' que es el nombre en tu archivo de infraestructura
-      - SQL_SERVER_URL=sqlserver://sqlserver-pd:1433;database=NexusMs_Dev;user=dbadmin;password=${SQL_SA_PASSWORD};encrypt=true;trustServerCertificate=true;
+      - SQL_SERVER_URL=sqlserver://dbadmin:${SQL_SA_PASSWORD}@sqlserver-pd:1433/NexusMs_Dev?encrypt=true&trustServerCertificate=true
       
       # Corregimos también el string de Mongo apuntando al contenedor 'mongodb-pd'
       - MONGO_URL=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb-pd:27017/
