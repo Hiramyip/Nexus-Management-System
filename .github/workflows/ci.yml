@@ -29,8 +29,8 @@ jobs:
       - name: Generar Clientes de Prisma (SQL Server y MongoDB)
         run: |
           cd backend
-          PRISMA_TARGET_DB=sqlserver npx prisma generate --config=../prisma.config.ts
-          PRISMA_TARGET_DB=mongodb npx prisma generate --config=../prisma.config.ts
+          npx prisma generate --schema=../prisma/sqlserver/schema.prisma
+          npx prisma generate --schema=../prisma/mongodb/schema.prisma
 
       # CUMPLE CON: "El DevOps debera revisar que el codigo compile" (RF-DO-03)
       # En Node.js (JavaScript/TypeScript), el build linter o compilación valida errores sintácticos.
@@ -65,8 +65,8 @@ jobs:
       - name: Generar Clientes de Prisma (SQL Server y MongoDB)
         run: |
           cd frontend
-          PRISMA_TARGET_DB=sqlserver npx prisma generate --config=../prisma.config.ts
-          PRISMA_TARGET_DB=mongodb npx prisma generate --config=../prisma.config.ts
+          npx prisma generate --schema=../prisma/sqlserver/schema.prisma
+          npx prisma generate --schema=../prisma/mongodb/schema.prisma
 
       # CUMPLE CON: Validar que el código de la interfaz no tenga errores sintácticos
       - name: Compilar Frontend (Build Test)
