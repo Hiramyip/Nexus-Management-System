@@ -1,17 +1,9 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import App from "./App"; // Importa tu componente desde App.tsx
-import "./styles/scrollbar.css";
-import "./styles/global.css";
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.tsx'
 
-const rootElement = document.getElementById("root");
-
-if (!rootElement) {
-  throw new Error("No se encontró el elemento raíz 'root' en el HTML.");
-}
-
-createRoot(rootElement).render(
-  <StrictMode>
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
     <App />
-  </StrictMode>
-);
+  </React.StrictMode>,
+)

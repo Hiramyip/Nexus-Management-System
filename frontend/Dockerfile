@@ -10,7 +10,7 @@ COPY frontend/ .
 
 EXPOSE 3000
 
-# Forzamos la generación y arrancamos con el servidor de desarrollo de Vite
+# El mismo truco para el frontend
 CMD npx prisma@6 generate --schema=prisma/sqlserver/schema.prisma && \
     npx prisma@6 generate --schema=prisma/mongodb/schema.prisma && \
-    npm run start
+    npm start

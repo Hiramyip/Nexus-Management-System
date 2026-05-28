@@ -8,12 +8,8 @@ export default defineConfig({
     host: true,
     strictPort: true,
     watch: {
-      usePolling: true,
-      ignored: ['**/Dockerfile', '**/.dockerignore', '**/.env*'] // <-- EL ESCUDO CONTRA EL ERROR
+      usePolling: true
     },
-    hmr: {
-      clientPort: 443, // Le dice a Vite que use el puerto seguro estándar de Nginx
-    },
-    allowedHosts: ["nexxusms.duckdns.org", "ft-nexxusms.duckdns.org", "localhost:3000"]
+    allowedHosts: ["nexxusms.duckdns.org", "ft-nexxusms.duckdns.org"]
   }
 })
