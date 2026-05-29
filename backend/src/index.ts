@@ -35,7 +35,7 @@ import eventoModificacionRoutes from './routes/mongo/eventoModificacion.routes.j
 
 const app = express();
 const PORT = process.env.PORT || 8000;
-const EXCEL_PROCESSOR_URL = process.env.EXCEL_PROCESSOR_URL || 'http://localhost:8003';
+const EXCEL_PROCESSOR_URL = process.env.EXCEL_PROCESSOR_URL || 'https://nexus-excel-processor-onrender-com.onrender.com';
 
 const CORS_ORIGINS = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
