@@ -77,6 +77,44 @@ def clean_bool(val):
     s = str(val).strip().lower()
     return s in ("true", "1", "yes", "sí", "si", "x", "✓", "checked")
 
+
+def has_meaningful_report_data(row):
+    if row is None:
+        return False
+
+    values = [str(v).strip() for v in row if pd.notna(v) and str(v).strip()]
+    if not values:
+        return False
+
+    # Skip schematic/template rows that are only headings, totals, or repeated check marks.
+    placeholder_tokens = {
+        'cuadrilla', 'ubicación', 'ubicacion', 'descripción', 'descripcion',
+        'solicitó', 'solicito', 'barrido manual', 'área', 'm3', 'peso',
+        'total', 'totales', 'acumulado', 'bm', 'cz', 'pb', 'lb', 'le', 'lt', 'lm', 'la'
+    }
+    normalized_values = {normalize_text(v) for v in values}
+    if normalized_values & placeholder_tokens:
+        # These are template labels, not real report records.
+        return False
+
+    metrics = [
+        clean_val(row.get('metros lineales') or row.get('metro lineal') or row.get('m. lineales') or row.get('metroslineales')),
+        clean_val(row.get('metros cuadrados') or row.get('metro cuadrado') or row.get('m. cuadrados') or row.get('metroscuadrados')),
+        clean_val(row.get('metros cubicos') or row.get('metro cubico') or row.get('m. cubicos') or row.get('metroscubicos') or row.get('metros cúbicos') or row.get('metros cúbico')),
+        clean_val(row.get('peso (kg)') or row.get('peso') or row.get('pesokg')),
+    ]
+    if any(m > 0 for m in metrics):
+        return True
+
+    # If the row contains a real description/location/folio, keep it.
+    text_fields = [
+        clean_str(row.get('ubicacion') or row.get('ubicación') or row.get('direccion') or row.get('dirección')),
+        clean_str(row.get('descripcion') or row.get('descripción')),
+        clean_str(row.get('folio')),
+        clean_str(row.get('ventanilla')),
+    ]
+    return any(text_fields)
+
 @app.get("/")
 def read_root():
     return {
@@ -107,8 +145,10 @@ async def process_excel(file: UploadFile = File(...)):
             tipo_hoja = resolve_report_type(sheet_name, "oficios")
 
             for idx, row in df.iterrows():
-                # Saltar filas vacías
+                # Saltar filas vacías o filas de plantilla sin datos reales.
                 if row.isna().all():
+                    continue
+                if not has_meaningful_report_data(row):
                     continue
 
                 # Extraer fecha
