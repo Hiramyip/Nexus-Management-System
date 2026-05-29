@@ -83,7 +83,8 @@ export function CapturaReportes({ canEdit }: { canEdit: boolean }) {
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.detail || "Error al procesar el archivo Excel en Python.");
+        const msg = errData.error || errData.detail || "Error al procesar el archivo Excel.";
+        throw new Error(msg);
       }
 
       const data = await response.json();
