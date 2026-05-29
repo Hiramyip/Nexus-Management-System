@@ -26,8 +26,8 @@ async function processExcelFile(req: Request, res: Response) {
 
     const response = await fetch(`${excelProcessorUrl}/process`, {
       method: 'POST',
-      body: formData as unknown as BodyInit,
-      headers: formData.getHeaders() as HeadersInit,
+      body: formData.getBuffer(),
+      headers: formData.getHeaders(),
     });
 
     if (!response.ok) {
