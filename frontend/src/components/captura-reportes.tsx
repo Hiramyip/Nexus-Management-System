@@ -75,6 +75,7 @@ export function CapturaReportes({ canEdit }: { canEdit: boolean }) {
     formData.append("file", selectedFile);
 
     try {
+      // Mandamos el archivo al backend de Python
       const response = await fetch(API_UPLOAD_URL, {
         method: "POST",
         body: formData,
@@ -82,14 +83,15 @@ export function CapturaReportes({ canEdit }: { canEdit: boolean }) {
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.detail || errData.error || "Error al procesar el archivo Excel en el servidor.");
+        throw new Error(errData.detail || "Error al procesar el archivo Excel en Python.");
       }
 
       const data = await response.json();
-      // El backend retorna directamente la lista mapeada de registros procesados
+      // El backend de Python retorna directamente la lista mapeada
       setReportesData(data);
+      
     } catch (error: any) {
-      console.error(error);
+      console.error("Error en procesador Python:", error);
       alert(error.message || "Error de red al subir el documento.");
       setFile(null);
     } finally {
@@ -122,10 +124,12 @@ export function CapturaReportes({ canEdit }: { canEdit: boolean }) {
     setIsLoading(true);
 
     try {
+      // Mandamos los datos al backend de Node.js (Express)
       const response = await fetch(API_BULK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reportes: reportesData }),
+        // CORRECCIÓN: Mandamos el arreglo directo, sin envolverlo en { reportes: ... }
+        body: JSON.stringify(reportesData), 
       });
 
       if (!response.ok) {
@@ -140,8 +144,8 @@ export function CapturaReportes({ canEdit }: { canEdit: boolean }) {
         setSuccessMessage(false);
       }, 2000);
     } catch (error: any) {
-      console.error(error);
-      alert(error.message || "Error al guardar los registros.");
+      console.error("Error en Node.js Bulk Insert:", error);
+      alert(error.message || "Error al guardar los registros en la base de datos.");
     } finally {
       setIsLoading(false);
     }
