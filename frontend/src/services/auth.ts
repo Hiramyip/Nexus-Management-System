@@ -4,7 +4,7 @@ import { UserRole } from "../types/roles";
 
 const SESSION_STORAGE_KEY = "app_session";
 const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 horas
-const LOGIN_API_URL = "https://ft-api-nexxusms.duckdns.org/api/sql/usuarios/login";
+const LOGIN_API_URL = `${import.meta.env.VITE_API_URL}/api/sql/usuarios/login`;
 
 /**
  * Conexión real al endpoint POST /login del Backend

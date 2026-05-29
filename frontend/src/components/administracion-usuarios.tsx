@@ -10,7 +10,7 @@ interface Usuario {
   fechaRegistro: string;
 }
 
-const API_URL = "https://ft-api-nexxusms.duckdns.org/api/sql/usuarios";
+const API_URL = `${import.meta.env.VITE_API_URL}/api/sql/usuarios`;
 
 export function AdministracionUsuarios({
 }: {

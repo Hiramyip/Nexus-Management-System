@@ -38,7 +38,12 @@ const PORT = process.env.PORT || 8000;
 const EXCEL_PROCESSOR_URL = process.env.EXCEL_PROCESSOR_URL || 'http://localhost:8003';
 
 app.use(cors({
-  origin: ['https://ft-nexxusms.duckdns.org', 'http://localhost:3000'],
+  origin: [
+    'https://ft-nexxusms.duckdns.org',
+    'http://localhost:3000',
+    'https://nexus-management-system-gamma.vercel.app',
+    'https://nexus-backend-2pm4.onrender.com'
+  ],
   credentials: true
 }));
 app.use(express.json());
