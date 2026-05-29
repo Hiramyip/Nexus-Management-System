@@ -67,12 +67,13 @@ router.post('/login', async (req: Request, res: Response) => {
     const ip = forwardedIp || req.ip || 'unknown';
 
     try {
-      await eventoInicioSesionService.create({
+      const ev = await eventoInicioSesionService.create({
         nombreUsuario: data.nombre,
         rol: data.rol || 'Sin rol',
         fechaInicio: new Date(),
         ip,
       });
+      console.log('Evento de inicio de sesión registrado en MongoDB, id =', ev.id);
     } catch (mongoError) {
       console.error('No se pudo registrar el evento de inicio de sesión en MongoDB:', mongoError);
     }
