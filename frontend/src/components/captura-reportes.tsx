@@ -58,7 +58,7 @@ export function CapturaReportes({ canEdit }: { canEdit: boolean }) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
-  const [file, setFile] = useState<File | null>(null);
+  const [, setFile] = useState<File | null>(null);
   const [reportesData, setReportesData] = useState<ReporteData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [editingRow, setEditingRow] = useState<string | null>(null);

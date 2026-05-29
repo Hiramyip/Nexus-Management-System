@@ -228,7 +228,7 @@ export function GeneracionReportes({ allowedReportTypes }: { allowedReportTypes?
   );
 }
 
-function TablaReportes({ datos, mostrarFolio, mostrarVentanilla = false, mostrarTotales = false, sumatorias = null }: { datos: ReporteData[]; mostrarFolio: boolean; mostrarVentanilla?: boolean; mostrarTotales?: boolean; sumatorias?: any }) {
+function TablaReportes({ datos, mostrarFolio, mostrarVentanilla = false }: { datos: ReporteData[]; mostrarFolio: boolean; mostrarVentanilla?: boolean; mostrarTotales?: boolean; sumatorias?: any }) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   return (
