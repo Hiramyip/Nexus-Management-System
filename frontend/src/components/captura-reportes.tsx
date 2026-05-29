@@ -125,25 +125,47 @@ export function CapturaReportes({ canEdit }: { canEdit: boolean }) {
     setIsLoading(true);
 
     try {
-      // Mandamos los datos al backend de Node.js (Express)
-      const response = await fetch(API_BULK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        // CORRECCIÓN: Mandamos el arreglo directo, sin envolverlo en { reportes: ... }
-        body: JSON.stringify(reportesData), 
-      });
+      // Enviar datos en batches para evitar el límite de 10MB de Render
+      const BATCH_SIZE = 50;
+      const totalBatches = Math.ceil(reportesData.length / BATCH_SIZE);
+      let successCount = 0;
+      let errorCount = 0;
 
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || "Error al guardar el lote masivo en SQL Server.");
+      for (let i = 0; i < totalBatches; i++) {
+        const start = i * BATCH_SIZE;
+        const end = Math.min(start + BATCH_SIZE, reportesData.length);
+        const batch = reportesData.slice(start, end);
+
+        try {
+          const response = await fetch(API_BULK_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(batch),
+          });
+
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error || `Error al guardar batch ${i + 1}/${totalBatches}`);
+          }
+
+          successCount += batch.length;
+        } catch (error: any) {
+          console.error(`Error en batch ${i + 1}/${totalBatches}:`, error);
+          errorCount += batch.length;
+          // Continuar con el siguiente batch aunque falle este
+        }
       }
 
-      setSuccessMessage(true);
-      setTimeout(() => {
-        setReportesData([]);
-        setFile(null);
-        setSuccessMessage(false);
-      }, 2000);
+      if (errorCount > 0) {
+        alert(`Guardado parcial: ${successCount} registros exitosos, ${errorCount} fallidos.`);
+      } else {
+        setSuccessMessage(true);
+        setTimeout(() => {
+          setReportesData([]);
+          setFile(null);
+          setSuccessMessage(false);
+        }, 2000);
+      }
     } catch (error: any) {
       console.error("Error en Node.js Bulk Insert:", error);
       alert(error.message || "Error al guardar los registros en la base de datos.");
