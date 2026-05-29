@@ -37,13 +37,42 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 const EXCEL_PROCESSOR_URL = process.env.EXCEL_PROCESSOR_URL || 'http://localhost:8003';
 
+const CORS_ORIGINS = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
+  : [
+      'https://ft-nexxusms.duckdns.org',
+      'http://localhost:3000',
+      'https://nexus-management-system-gamma.vercel.app',
+      'https://nexus-backend-2pm4.onrender.com'
+    ];
+
+const CORS_HOST_PATTERNS = [
+  /^https:\/\/[^/]+\.vercel\.app$/,
+  /^https:\/\/[^/]+\.onrender\.com$/
+];
+
+function handleCorsOrigin(origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+  if (!origin) {
+    return callback(null, true);
+  }
+
+  if (CORS_ORIGINS.includes(origin)) {
+    return callback(null, true);
+  }
+
+  if (CORS_HOST_PATTERNS.some((pattern) => pattern.test(origin))) {
+    return callback(null, true);
+  }
+
+  return callback(new Error(`Origin ${origin} not allowed by CORS`));
+}
+
+app.options('*', cors({
+  origin: handleCorsOrigin,
+  credentials: true
+}));
 app.use(cors({
-  origin: [
-    'https://ft-nexxusms.duckdns.org',
-    'http://localhost:3000',
-    'https://nexus-management-system-gamma.vercel.app',
-    'https://nexus-backend-2pm4.onrender.com'
-  ],
+  origin: handleCorsOrigin,
   credentials: true
 }));
 app.use(express.json());
