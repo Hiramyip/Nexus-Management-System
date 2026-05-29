@@ -179,17 +179,44 @@ export class ReportesService {
   // ── Endpoint unificado "Todos": UNION ALL de las 16 vistas ─────────────────
   // Cada sub-query necesita su propio par único de @pN porque SQL Server
   // numera los parámetros secuencialmente en toda la query.
+  // Especificamos las columnas explícitamente y alineamos Actividades como NULL en las vistas que no lo tienen
+  // para evitar el error de disparidad de columnas en UNION ALL.
   async getReporteTodos(fechaInicio?: Date, fechaFin?: Date) {
     const allParams: any[] = [];
+    const viewsWithActividades = new Set<string>([
+      'vw_reporte_escuelas',
+      'vw_reporte_panteones',
+      'vw_reporte_puentes',
+      'vw_reporte_eventos_especiales',
+      'vw_reporte_programacion_diaria',
+      'vw_reporte_empleo_colonia',
+      'vw_reporte_consejo_participacion',
+      'vw_reporte_peticiones_directas',
+    ]);
 
     const unionParts = VIEWS.map((view) => {
+      const hasActividades = viewsWithActividades.has(view);
+      const actividadesCol = hasActividades ? 'Actividades' : 'CAST(NULL AS VARCHAR(MAX)) AS Actividades';
+
+      let whereClause = '';
       if (fechaInicio && fechaFin) {
         const p1 = allParams.length + 1;
         const p2 = allParams.length + 2;
         allParams.push(fechaInicio, fechaFin);
-        return `SELECT * FROM ${view} WHERE Fecha BETWEEN @p${p1} AND @p${p2}`;
+        whereClause = ` WHERE Fecha BETWEEN @p${p1} AND @p${p2}`;
       }
-      return `SELECT * FROM ${view}`;
+
+      return `SELECT 
+        Fecha, 
+        [No. Cuadrilla], 
+        Ubicacion, 
+        ${actividadesCol} AS Actividades, 
+        Tipo, 
+        [Metros Lineales], 
+        [Metros Cuadrados], 
+        [Metros Cubicos], 
+        [Peso (KG)] 
+      FROM ${view}${whereClause}`;
     });
 
     const query = unionParts.join('\nUNION ALL\n');
