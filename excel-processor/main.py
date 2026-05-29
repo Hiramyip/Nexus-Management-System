@@ -75,6 +75,39 @@ def clean_bool(val):
     s = str(val).strip().lower()
     return s in ("true", "1", "yes", "sí", "si", "x", "✓", "checked")
 
+def decide_tipo_from_solicito(solicito_raw: str, default_tipo: str):
+    """Decide el tipo de reporte según el texto del campo 'Solicitó'.
+    Reglas:
+    - Si contiene 'ciga' o 'ventanilla' → 'ciga'
+    - Si contiene 'oficio' → 'oficios'
+    - Si parece un nombre o contiene títulos (Lic., Licenciado, Sr., Sra.) → 'peticiondirecta'
+    - En caso contrario devuelve el tipo por defecto
+    """
+    if solicito_raw is None:
+        return default_tipo
+    s = str(solicito_raw).strip()
+    if not s:
+        return default_tipo
+    s_low = s.lower()
+
+    # Priorizar CIGA
+    if 'ciga' in s_low or 'ventanilla' in s_low:
+        return 'ciga'
+
+    # Priorizar OFICIOS
+    if 'oficio' in s_low or 'oficios' in s_low:
+        return 'oficios'
+
+    # Detectar títulos formales que probablemente indican petición directa
+    if re.search(r'\blic\.?\b|\blicenciado|\bsr\.?\b|\bsra\.?\b|\bprof\.?\b|\bdr\.?\b', s_low):
+        return 'peticiondirecta'
+
+    # Si el texto tiene múltiples palabras (probable nombre) y no contiene dígitos ni símbolos
+    words = [w for w in re.split(r'\s+', s) if w]
+    if len(words) >= 2 and not re.search(r'[0-9@#$/%]', s):
+        return 'peticiondirecta'
+
+    return default_tipo
 @app.get("/")
 def read_root():
     return {
@@ -258,6 +291,10 @@ async def process_excel(file: UploadFile = File(...)):
                             if t == val_tipo:
                                 tipo_final = t
                                 break
+                    # Si existe columna "Solicitó", decidir tipo por su contenido
+                                    if col_solicito is not None and pd.notna(row[col_solicito]):
+                                        solicito_raw = row[col_solicito]
+                                        tipo_final = decide_tipo_from_solicito(solicito_raw, tipo_final)
                     
                     result_reports.append({
                         "id": str(uuid.uuid4()),
@@ -332,6 +369,14 @@ async def process_excel(file: UploadFile = File(...)):
                             if t == val_tipo:
                                 tipo_final = t
                                 break
+                    # Revisar columna 'solicitó' o 'solicito' en estructura plana
+                    solicit_field = None
+                    for candidate in ("solicitó", "solicito", "solicito "):
+                        if candidate in row and pd.notna(row[candidate]):
+                            solicit_field = candidate
+                            break
+                    if solicit_field is not None:
+                        tipo_final = decide_tipo_from_solicito(row[solicit_field], tipo_final)
                     
                     result_reports.append({
                         "id": str(uuid.uuid4()),
@@ -351,4 +396,4 @@ async def process_excel(file: UploadFile = File(...)):
         return result_reports
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error procesando el archivo Excel: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error procesando el archivo Excel: {str(e)}")
