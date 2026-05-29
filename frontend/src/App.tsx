@@ -127,7 +127,6 @@ function AppContent() {
         return permissions.canAccessCaptura ? (
           <CapturaReportes
             canEdit={permissions.canEditCaptura}
-            canViewTables={permissions.canViewTables}
           />
         ) : (
           <AccessDenied />
@@ -143,7 +142,7 @@ function AppContent() {
         );
       case "usuarios":
         return permissions.canAccessAdminUsuarios ? (
-          <AdministracionUsuarios currentUserRole={currentUser.rol} />
+          <AdministracionUsuarios />
         ) : (
           <AccessDenied />
         );
