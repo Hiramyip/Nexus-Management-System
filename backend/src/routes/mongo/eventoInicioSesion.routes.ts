@@ -27,14 +27,26 @@ router.get('/:id', async (req: Request, res: Response) => {
 // POST /api/mongo/eventoInicioSesion
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { nombreUsuario, rol, fechaInicio, ip } = req.body;
-    const data = await service.create({
-      nombreUsuario,
-      rol,
+    const { nombreUsuario, rol, fechaInicio, ip } = req.body || {};
+
+    if (!nombreUsuario || typeof nombreUsuario !== 'string' || nombreUsuario.trim() === '') {
+      return res.status(400).json({ error: 'El campo "nombreUsuario" es requerido y debe ser una cadena.' });
+    }
+
+    const payload = {
+      nombreUsuario: String(nombreUsuario).trim(),
+      rol: rol ? String(rol) : 'Sin rol',
       fechaInicio: fechaInicio ? new Date(fechaInicio) : undefined,
       ip: ip || req.ip,
-    });
-    res.status(201).json(data.toJSON());
+    };
+
+    try {
+      const data = await service.create(payload);
+      res.status(201).json(data.toJSON());
+    } catch (e) {
+      console.error('Error guardando evento de inicio de sesión en Mongo:', e);
+      res.status(500).json({ error: 'No se pudo crear el evento en la base de datos.' });
+    }
   } catch (e) {
     res.status(500).json({ error: (e as Error).message });
   }
