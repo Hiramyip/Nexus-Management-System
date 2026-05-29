@@ -183,6 +183,17 @@ export function CapturaReportes({ canEdit }: { canEdit: boolean }) {
 
   return (
     <div className="max-w-7xl mx-auto">
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 flex flex-col items-center gap-3 shadow-lg" style={{ minWidth: 280 }}>
+            <div className="inline-block w-12 h-12 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#C09447', borderTopColor: 'transparent' }} />
+            <div className="text-center">
+              <div className="font-medium" style={{ color: isDark ? '#D4A574' : '#6B1D3E' }}>{reportesData.length > 0 ? 'Subiendo y guardando reportes...' : 'Procesando archivo...'}</div>
+              <div className="text-sm text-gray-500">Por favor espera — no cierres ni naveges hasta completar.</div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="mb-6">
         <h3 className="text-xl mb-2" style={{ color: "#6B1D3E" }}>Captura de Reportes</h3>

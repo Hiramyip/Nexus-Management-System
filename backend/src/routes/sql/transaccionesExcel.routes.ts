@@ -26,8 +26,10 @@ async function processExcelFile(req: Request, res: Response) {
 
     const response = await fetch(`${excelProcessorUrl}/process`, {
       method: 'POST',
-      body: formData.getBuffer(),
-      headers: formData.getHeaders(),
+      // form-data en node devuelve un Buffer con getBuffer(); el tipo BodyInit de fetch en TS no
+      // acepta directamente Buffer, así que casteamos para evitar error de tipado en tiempo de compilación.
+      body: formData.getBuffer() as unknown as BodyInit,
+      headers: formData.getHeaders() as any,
     });
 
     if (!response.ok) {
