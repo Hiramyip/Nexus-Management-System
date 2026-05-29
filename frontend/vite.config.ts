@@ -9,11 +9,21 @@ export default defineConfig({
     strictPort: true,
     watch: {
       usePolling: true,
-      ignored: ['**/Dockerfile', '**/.dockerignore', '**/.env*'] // <-- EL ESCUDO CONTRA EL ERROR
+      ignored: ['**/Dockerfile', '**/.dockerignore', '**/.env*']
     },
     hmr: {
-      clientPort: 443, // Le dice a Vite que use el puerto seguro estándar de Nginx
+      clientPort: 443,
     },
-    allowedHosts: ["nexxusms.duckdns.org", "ft-nexxusms.duckdns.org", "localhost:3000"]
+    allowedHosts: [
+      "nexxusms.duckdns.org",
+      "ft-nexxusms.duckdns.org",
+      "nexus-management-system-gamma.vercel.app",
+      "localhost:3000"
+    ]
+  },
+  define: {
+    'import.meta.env.VITE_API_URL': JSON.stringify(
+      process.env.VITE_API_URL || 'https://nexus-backend-2pm4.onrender.com'
+    )
   }
 })
