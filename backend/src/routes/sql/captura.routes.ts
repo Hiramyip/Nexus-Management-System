@@ -29,10 +29,36 @@ async function getOrCreateGrupoTrabajo(noCuadrilla: string): Promise<number> {
     }
   }
   if (!gt) {
-    // Crear uno nuevo
-    gt = await sqlDb.grupoTrabajo.create({
-      data: { encargado: name }
-    });
+    // Crear uno nuevo — algunos entornos tienen la columna `NumeroCuadrilla` como NOT NULL,
+    // así que intentamos insertar explícitamente ese campo usando una consulta raw.
+    const numero = noCuadrilla || name || 'General';
+    try {
+      // Usar OUTPUT INSERTED.idGrupoTrabajo para obtener el id insertado en SQL Server
+      const inserted: any = await sqlDb.$queryRaw`
+        INSERT INTO GrupoTrabajo (encargado, NumeroCuadrilla)
+        OUTPUT INSERTED.idGrupoTrabajo
+        VALUES (${name}, ${numero})
+      `;
+
+      // $queryRaw puede devolver diferentes shapes; buscar primer valor numérico
+      if (inserted && inserted[0]) {
+        const row = inserted[0];
+        const id = row.idGrupoTrabajo ?? Object.values(row)[0];
+        return Number(id);
+      }
+    } catch (err) {
+      // Si la inserción raw falla, reintentar con prisma.create (más seguro en esquemas locales)
+      try {
+        gt = await sqlDb.grupoTrabajo.create({ data: { encargado: name } });
+        return gt.idGrupoTrabajo;
+      } catch (err2) {
+        console.error('Error creando GrupoTrabajo (raw y prisma):', err, err2);
+        throw err2;
+      }
+    }
+
+    // Si por alguna razón no obtuvimos el id, lanzar error
+    throw new Error('No fue posible crear GrupoTrabajo');
   }
   return gt.idGrupoTrabajo;
 }
@@ -53,8 +79,8 @@ router.post('/bulk', async (req: Request, res: Response) => {
   }
 
   const results: any[] = [];
-  try {
-    for (const r of reports) {
+  for (const r of reports) {
+    try {
       const idGrupoTrabajo = await getOrCreateGrupoTrabajo(r.noCuadrilla);
       const fecha = r.fecha ? new Date(r.fecha) : new Date();
       const tipo = (r.tipo || '').toLowerCase();
@@ -280,12 +306,15 @@ router.post('/bulk', async (req: Request, res: Response) => {
       }
 
       results.push({ idOriginal: r.id, success: true, record: createdRecord });
+    } catch (error: any) {
+      console.error('Error procesando reporte:', { report: r, error });
+      results.push({ idOriginal: r.id, success: false, error: error?.message || String(error) });
+      // continuar con el siguiente registro sin abortar todo el batch
+      continue;
     }
-
-    res.status(201).json({ message: 'Todos los reportes se procesaron exitosamente.', results });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
   }
+
+  res.status(201).json({ message: 'Procesamiento por item completado.', results });
 });
 
 export default router;

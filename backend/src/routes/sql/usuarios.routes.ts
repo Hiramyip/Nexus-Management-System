@@ -1,8 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { UsuariosService } from '../../services/sql/UsuariosService.js';
+import { EventoInicioSesionService } from '../../services/mongo/EventoInicioSesionService.js';
 
 const router = Router();
 const service = new UsuariosService();
+const eventoInicioSesionService = new EventoInicioSesionService();
 
 // GET /api/sql/usuarios
 router.get('/', async (_req: Request, res: Response) => {
@@ -60,6 +62,21 @@ router.post('/login', async (req: Request, res: Response) => {
   try {
     const { nombre, password_user } = req.body as { nombre: string; password_user: string };
     const data = await service.login(nombre, password_user);
+
+    const forwardedIp = (req.headers['x-forwarded-for'] as string | undefined)?.split(',')[0]?.trim();
+    const ip = forwardedIp || req.ip || 'unknown';
+
+    try {
+      await eventoInicioSesionService.create({
+        nombreUsuario: data.nombre,
+        rol: data.rol || 'Sin rol',
+        fechaInicio: new Date(),
+        ip,
+      });
+    } catch (mongoError) {
+      console.error('No se pudo registrar el evento de inicio de sesión en MongoDB:', mongoError);
+    }
+
     res.json(data.toJSON());
   } catch (e) {
     res.status(401).json({ error: (e as Error).message });
