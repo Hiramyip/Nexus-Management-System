@@ -67,6 +67,10 @@ function handleCorsOrigin(origin: string | undefined, callback: (err: Error | nu
   return callback(new Error(`Origin ${origin} not allowed by CORS`));
 }
 
+app.options('*', cors({
+  origin: handleCorsOrigin,
+  credentials: true
+}));
 app.use(cors({
   origin: handleCorsOrigin,
   credentials: true
