@@ -213,6 +213,34 @@ router.get('/tiraderos-inspeccion', async (req: Request, res: Response) => {
   }
 });
 
+// Endpoint unificado: consolida las 15 vistas con UNION ALL
+router.get('/todos', async (req: Request, res: Response) => {
+  try {
+    const { fechaInicio, fechaFin } = req.query;
+    const data = await service.getReporteTodos(
+      fechaInicio ? new Date(fechaInicio as string) : undefined,
+      fechaFin ? new Date(fechaFin as string) : undefined
+    );
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: (e as Error).message });
+  }
+});
+
+// Endpoint Dashboard: resumen mensual agrupado para recharts
+router.get('/dashboard', async (req: Request, res: Response) => {
+  try {
+    const { fechaInicio, fechaFin } = req.query;
+    const data = await service.getReporteDashboard(
+      fechaInicio ? new Date(fechaInicio as string) : undefined,
+      fechaFin ? new Date(fechaFin as string) : undefined
+    );
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: (e as Error).message });
+  }
+});
+
 // Stored Procedure
 router.post('/insertar-registro-dinamico', async (req: Request, res: Response) => {
   try {
