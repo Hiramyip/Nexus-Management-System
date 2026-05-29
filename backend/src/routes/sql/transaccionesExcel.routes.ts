@@ -89,8 +89,11 @@ router.get('/', async (_req: Request, res: Response) => {
 });
 
 router.get('/:id', async (req: Request, res: Response) => {
-  try { res.json((await service.getById(Number(req.params.id))).toJSON()); }
-  catch (e) { res.status(404).json({ error: (e as Error).message }); }
+  try {
+    const id = Number(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ error: 'ID inválido' });
+    res.json((await service.getById(id)).toJSON());
+  } catch (e) { res.status(404).json({ error: (e as Error).message }); }
 });
 
 router.post('/', async (req: Request, res: Response) => {
@@ -99,8 +102,12 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 router.delete('/:id', async (req: Request, res: Response) => {
-  try { await service.delete(Number(req.params.id)); res.status(204).send(); }
-  catch (e) { res.status(500).json({ error: (e as Error).message }); }
+  try {
+    const id = Number(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ error: 'ID inválido' });
+    await service.delete(id);
+    res.status(204).send();
+  } catch (e) { res.status(500).json({ error: (e as Error).message }); }
 });
 
 export default router;
