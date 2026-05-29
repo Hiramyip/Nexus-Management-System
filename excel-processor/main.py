@@ -1,12 +1,10 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from openpyxl import load_workbook
 import pandas as pd
 import io
 import uuid
 import math
 import datetime
-import unicodedata
 
 
 app = FastAPI(
@@ -28,32 +26,6 @@ TIPOS_VALIDOS = {
     "programaciondiaria", "empleocolonia", "consejoparticipacionsocial",
     "tiraderosinspeccion", "peticiondirecta", "eventoespecial"
 }
-
-TIPO_ALIASES = {
-    "eventosespeciales": "eventoespecial",
-    "peticionesdirectas": "peticiondirecta",
-}
-
-
-def normalize_text(value):
-    if value is None:
-        return ""
-    text = str(value).strip().lower()
-    text = unicodedata.normalize('NFKD', text)
-    text = ''.join(char for char in text if not unicodedata.combining(char))
-    return ''.join(ch for ch in text if ch.isalnum())
-
-
-def resolve_report_type(raw_name, fallback):
-    candidate = normalize_text(raw_name)
-    if candidate in TIPO_ALIASES:
-        return TIPO_ALIASES[candidate]
-    if candidate in TIPOS_VALIDOS:
-        return candidate
-    for value in TIPOS_VALIDOS:
-        if normalize_text(value) == candidate or candidate.startswith(normalize_text(value)):
-            return value
-    return fallback
 
 def clean_val(val, default=0):
     if pd.isna(val) or val is None:
@@ -78,49 +50,6 @@ def clean_bool(val):
     s = str(val).strip().lower()
     return s in ("true", "1", "yes", "sí", "si", "x", "✓", "checked")
 
-
-def is_meaningful_location(val):
-    text = clean_str(val)
-    return bool(text) and not clean_bool(val)
-
-
-def has_meaningful_report_data(row):
-    if row is None:
-        return False
-
-    values = [str(v).strip() for v in row if pd.notna(v) and str(v).strip()]
-    if not values:
-        return False
-
-    # Skip schematic/template rows that are only headings, totals, or repeated check marks.
-    placeholder_tokens = {
-        'cuadrilla', 'ubicación', 'ubicacion', 'descripción', 'descripcion',
-        'solicitó', 'solicito', 'barrido manual', 'área', 'm3', 'peso',
-        'total', 'totales', 'acumulado', 'bm', 'cz', 'pb', 'lb', 'le', 'lt', 'lm', 'la'
-    }
-    normalized_values = {normalize_text(v) for v in values}
-    if normalized_values & placeholder_tokens:
-        # These are template labels, not real report records.
-        return False
-
-    metrics = [
-        clean_val(row.get('metros lineales') or row.get('metro lineal') or row.get('m. lineales') or row.get('metroslineales')),
-        clean_val(row.get('metros cuadrados') or row.get('metro cuadrado') or row.get('m. cuadrados') or row.get('metroscuadrados')),
-        clean_val(row.get('metros cubicos') or row.get('metro cubico') or row.get('m. cubicos') or row.get('metroscubicos') or row.get('metros cúbicos') or row.get('metros cúbico')),
-        clean_val(row.get('peso (kg)') or row.get('peso') or row.get('pesokg')),
-    ]
-    if any(m > 0 for m in metrics):
-        return True
-
-    # If the row contains a real description/location/folio, keep it.
-    text_fields = [
-        clean_str(row.get('ubicacion') or row.get('ubicación') or row.get('direccion') or row.get('dirección')),
-        clean_str(row.get('descripcion') or row.get('descripción')),
-        clean_str(row.get('folio')),
-        clean_str(row.get('ventanilla')),
-    ]
-    return any(text_fields)
-
 @app.get("/")
 def read_root():
     return {
@@ -135,56 +64,103 @@ async def process_excel(file: UploadFile = File(...)):
 
     try:
         contents = await file.read()
-        workbook = load_workbook(io.BytesIO(contents), data_only=False)
+        excel_file = io.BytesIO(contents)
+        
+        # Cargar todas las hojas con pandas
+        xls = pd.ExcelFile(excel_file)
         result_reports = []
 
-        for sheet in workbook.worksheets:
-            tipo_hoja = resolve_report_type(sheet.title, "oficios")
-            rows = list(sheet.iter_rows(values_only=False))
+        for sheet_name in xls.sheet_names:
+            df = pd.read_excel(xls, sheet_name=sheet_name)
+            
+            # Limpiar nombres de columnas para facilitar emparejamiento
+            df.columns = [str(c).strip().lower() for c in df.columns]
+            
+            # Determinar tipo por el nombre de la hoja
+            sheet_clean = sheet_name.strip().lower()
+            tipo_hoja = "oficios" # Default
+            for t in TIPOS_VALIDOS:
+                if t in sheet_clean or sheet_clean in t:
+                    tipo_hoja = t
+                    break
 
-            for r_index, row in enumerate(rows[4:], start=5):
-                values = [cell.value for cell in row]
-                if not any(v is not None and str(v).strip() not in ('', '✓') for v in values):
+            for idx, row in df.iterrows():
+                # Saltar filas vacías
+                if row.isna().all():
                     continue
 
-                no_cuadrilla = clean_str(values[1]) if len(values) > 1 else 'C-001'
-                ubicacion = clean_str(values[2]) if len(values) > 2 and is_meaningful_location(values[2]) else ''
-                if not ubicacion and len(values) > 3 and is_meaningful_location(values[3]):
-                    ubicacion = clean_str(values[3])
+                # Extraer fecha
+                fecha_val = ""
+                for col in ["fecha", "date"]:
+                    if col in row:
+                        val = row[col]
+                        if pd.notna(val):
+                            if isinstance(val, (datetime.datetime, datetime.date)):
+                                fecha_val = val.strftime("%Y-%m-%d")
+                            else:
+                                fecha_val = str(val).strip()
+                if not fecha_val:
+                    fecha_val = datetime.date.today().strftime("%Y-%m-%d")
 
+                # Extraer cuadrilla
+                no_cuadrilla = "C-001"
+                for col in ["cuadrilla", "no. cuadrilla", "no_cuadrilla", "grupo", "encargado"]:
+                    if col in row and pd.notna(row[col]):
+                        no_cuadrilla = str(row[col]).strip()
+
+                # Extraer ubicacion
+                ubicacion = ""
+                for col in ["ubicacion", "ubicación", "direccion", "dirección"]:
+                    if col in row and pd.notna(row[col]):
+                        ubicacion = str(row[col]).strip()
+
+                # Actividades
                 actividades = {
-                    "barridoManual": clean_bool(values[3]) if len(values) > 3 else False,
-                    "corteZacate": clean_bool(values[4]) if len(values) > 4 else False,
-                    "pepenaBAsura": clean_bool(values[5]) if len(values) > 5 else False,
-                    "levantamientoBasura": clean_bool(values[6]) if len(values) > 6 else False,
-                    "levantamientoEscombro": clean_bool(values[7]) if len(values) > 7 else False,
-                    "limpiezaTerreno": clean_bool(values[8]) if len(values) > 8 else False,
-                    "levantamientoRamas": clean_bool(values[9]) if len(values) > 9 else False,
+                    "barridoManual": clean_bool(row.get("barrido manual") or row.get("barridomanual")),
+                    "corteZacate": clean_bool(row.get("corte de zacate") or row.get("cortezacate") or row.get("zacate")),
+                    "pepenaBAsura": clean_bool(row.get("pepena de basura") or row.get("pepenabasura")),
+                    "levantamientoBasura": clean_bool(row.get("levantamiento de basura") or row.get("levantamientobasura")),
+                    "levantamientoEscombro": clean_bool(row.get("levantamiento de escombro") or row.get("levantamientoescombro")),
+                    "limpiezaTerreno": clean_bool(row.get("limpieza de terreno") or row.get("limpiezaterreno")),
+                    "levantamientoRamas": clean_bool(row.get("levantamiento de ramas") or row.get("levantamientoramas")),
                 }
+
+                # Si no se detectaron actividades, marcar barrido manual por defecto
                 if not any(actividades.values()):
-                    actividades['barridoManual'] = True
+                    actividades["barridoManual"] = True
 
-                metros_lineales = clean_val(values[12]) if len(values) > 12 else 0
-                metros_cuadrados = clean_val(values[13]) if len(values) > 13 else 0
-                metros_cubicos = clean_val(values[14]) if len(values) > 14 else 0
-                peso_kg = clean_val(values[15]) if len(values) > 15 else 0
+                # Metros y peso
+                metros_lineales = clean_val(row.get("metros lineales") or row.get("metro lineal") or row.get("m. lineales") or row.get("metroslineales"))
+                metros_cuadrados = clean_val(row.get("metros cuadrados") or row.get("metro cuadrado") or row.get("m. cuadrados") or row.get("metroscuadrados"))
+                metros_cubicos = clean_val(row.get("metros cubicos") or row.get("metro cubico") or row.get("m. cubicos") or row.get("metroscubicos") or row.get("metros cúbicos") or row.get("metros cúbico"))
+                peso_kg = clean_val(row.get("peso (kg)") or row.get("peso") or row.get("pesokg"))
 
-                if not any([metros_lineales, metros_cuadrados, metros_cubicos, peso_kg]) and not is_meaningful_location(ubicacion):
-                    continue
+                # Folio y ventanilla
+                folio = clean_str(row.get("folio"))
+                ventanilla = clean_str(row.get("ventanilla"))
+
+                # Tipo de reporte (si viene en la fila, lo sobreescribimos)
+                tipo_final = tipo_hoja
+                if "tipo" in row and pd.notna(row["tipo"]):
+                    val_tipo = str(row["tipo"]).strip().lower()
+                    for t in TIPOS_VALIDOS:
+                        if t == val_tipo:
+                            tipo_final = t
+                            break
 
                 result_reports.append({
                     "id": str(uuid.uuid4()),
-                    "fecha": datetime.date.today().strftime("%Y-%m-%d"),
-                    "noCuadrilla": no_cuadrilla or 'C-001',
-                    "ubicacion": ubicacion or 'Sin Ubicación',
+                    "fecha": fecha_val,
+                    "noCuadrilla": no_cuadrilla,
+                    "ubicacion": ubicacion or "Sin Ubicación",
                     "actividades": actividades,
-                    "tipo": tipo_hoja,
-                    "folio": None,
-                    "ventanilla": None,
+                    "tipo": tipo_final,
+                    "folio": folio if folio else None,
+                    "ventanilla": ventanilla if ventanilla else None,
                     "metrosLineales": int(metros_lineales),
                     "metrosCuadrados": int(metros_cuadrados),
                     "metrosCubicos": float(metros_cubicos),
-                    "pesoKg": float(peso_kg),
+                    "pesoKg": float(peso_kg)
                 })
 
         return result_reports
