@@ -292,9 +292,9 @@ async def process_excel(file: UploadFile = File(...)):
                                 tipo_final = t
                                 break
                     # Si existe columna "Solicitó", decidir tipo por su contenido
-                                    if col_solicito is not None and pd.notna(row[col_solicito]):
-                                        solicito_raw = row[col_solicito]
-                                        tipo_final = decide_tipo_from_solicito(solicito_raw, tipo_final)
+                    if col_solicito is not None and pd.notna(row[col_solicito]):
+                        solicito_raw = row[col_solicito]
+                        tipo_final = decide_tipo_from_solicito(solicito_raw, tipo_final)
                     
                     result_reports.append({
                         "id": str(uuid.uuid4()),
