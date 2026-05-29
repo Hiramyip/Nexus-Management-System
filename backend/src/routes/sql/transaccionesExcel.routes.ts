@@ -32,7 +32,12 @@ async function processExcelFile(req: Request, res: Response) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Error del Excel Processor: ${errorText}`);
+      let errorMsg = errorText;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMsg = errorJson.detail || errorJson.error || errorText;
+      } catch { /* no es JSON, usamos el texto crudo */ }
+      throw new Error(`Error del Excel Processor: ${errorMsg}`);
     }
 
     return res.json(await response.json());
