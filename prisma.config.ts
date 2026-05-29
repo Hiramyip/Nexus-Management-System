@@ -11,10 +11,10 @@ export default defineConfig({
     : "./prisma/sqlserver/schema.prisma",
 
   datasource: {
-    // Si isMongo es true, usa MONGODB_URL. Si no, usa SQL_SERVER_URL.
-    // Usamos env() nativo de Prisma y un string vacío de respaldo para evitar que explote si no se detecta la variable
+    // Si isMongo es true, usa MONGODB_URL. Si no, usa SQL_SERVER_URL con fallback a DATABASE_URL.
+    // Esto mantiene compatibilidad con el .env actual del proyecto.
     url: isMongo
       ? (env("MONGODB_URL") || process.env.MONGODB_URL || "")
-      : (env("SQL_SERVER_URL") || process.env.SQL_SERVER_URL || "")
+      : (env("SQL_SERVER_URL") || process.env.SQL_SERVER_URL || env("DATABASE_URL") || process.env.DATABASE_URL || "")
   }
 });
