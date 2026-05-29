@@ -5,6 +5,7 @@ import io
 import uuid
 import math
 import datetime
+import unicodedata
 
 
 app = FastAPI(
@@ -26,6 +27,32 @@ TIPOS_VALIDOS = {
     "programaciondiaria", "empleocolonia", "consejoparticipacionsocial",
     "tiraderosinspeccion", "peticiondirecta", "eventoespecial"
 }
+
+TIPO_ALIASES = {
+    "eventosespeciales": "eventoespecial",
+    "peticionesdirectas": "peticiondirecta",
+}
+
+
+def normalize_text(value):
+    if value is None:
+        return ""
+    text = str(value).strip().lower()
+    text = unicodedata.normalize('NFKD', text)
+    text = ''.join(char for char in text if not unicodedata.combining(char))
+    return ''.join(ch for ch in text if ch.isalnum())
+
+
+def resolve_report_type(raw_name, fallback):
+    candidate = normalize_text(raw_name)
+    if candidate in TIPO_ALIASES:
+        return TIPO_ALIASES[candidate]
+    if candidate in TIPOS_VALIDOS:
+        return candidate
+    for value in TIPOS_VALIDOS:
+        if normalize_text(value) == candidate or candidate.startswith(normalize_text(value)):
+            return value
+    return fallback
 
 def clean_val(val, default=0):
     if pd.isna(val) or val is None:
@@ -76,14 +103,8 @@ async def process_excel(file: UploadFile = File(...)):
             # Limpiar nombres de columnas para facilitar emparejamiento
             df.columns = [str(c).strip().lower() for c in df.columns]
             
-            # Determinar tipo por el nombre de la hoja
-            sheet_clean = sheet_name.strip().lower()
-            tipo_hoja = "Oficios" # Default
-            for t in TIPOS_VALIDOS:
-                if t in sheet_clean or sheet_clean in t:
-                    # Mapear a la versión Capitalizada correcta
-                    tipo_hoja = sheet_name.strip()
-                    break
+            # Determinar tipo por el nombre de la hoja usando una normalización robusta
+            tipo_hoja = resolve_report_type(sheet_name, "oficios")
 
             for idx, row in df.iterrows():
                 # Saltar filas vacías
@@ -143,11 +164,7 @@ async def process_excel(file: UploadFile = File(...)):
                 # Tipo de reporte (si viene en la fila, lo sobreescribimos)
                 tipo_final = tipo_hoja
                 if "tipo" in row and pd.notna(row["tipo"]):
-                    val_tipo = str(row["tipo"]).strip()
-                    for t in TIPOS_VALIDOS:
-                        if t == val_tipo.lower():
-                            tipo_final = val_tipo
-                            break
+                    tipo_final = resolve_report_type(row["tipo"], tipo_hoja)
 
                 result_reports.append({
                     "id": str(uuid.uuid4()),
