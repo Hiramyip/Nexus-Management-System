@@ -136,12 +136,14 @@ export class ReportesService {
 
   async getReportePeticionesDirectas(fechaInicio?: Date, fechaFin?: Date) {
     const { clause, params } = buildWhere(fechaInicio, fechaFin);
-    return sqlDb.$queryRawUnsafe(`SELECT * FROM vw_reporte_peticiones_directas${clause}`, ...params);
+    const raw: any[] = await sqlDb.$queryRawUnsafe(`SELECT * FROM vw_reporte_peticiones_directas${clause}`, ...params);
+    return raw.map((r) => this.normalizeViewRow(r));
   }
 
   async getReporteCiga(fechaInicio?: Date, fechaFin?: Date) {
     const { clause, params } = buildWhere(fechaInicio, fechaFin);
-    return sqlDb.$queryRawUnsafe(`SELECT * FROM vw_reporte_ciga${clause}`, ...params);
+    const raw: any[] = await sqlDb.$queryRawUnsafe(`SELECT * FROM vw_reporte_ciga${clause}`, ...params);
+    return raw.map((r) => this.normalizeViewRow(r));
   }
 
   async getReporteEntregaObras(fechaInicio?: Date, fechaFin?: Date) {
@@ -191,7 +193,10 @@ export class ReportesService {
     });
 
     const query = unionParts.join('\nUNION ALL\n');
-    return sqlDb.$queryRawUnsafe(query, ...allParams);
+    const raw: any[] = await sqlDb.$queryRawUnsafe(query, ...allParams);
+
+    // Normalizar todas las filas para consistencia
+    return raw.map((r) => this.normalizeViewRow(r));
   }
 
   // ── Endpoint Dashboard: resumen mensual agrupado para recharts ─────────────
