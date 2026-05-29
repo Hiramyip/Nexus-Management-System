@@ -38,11 +38,65 @@ function buildWhere(
 }
 
 export class ReportesService {
+  // Normaliza las filas resultantes de las vistas SQL (nombres con espacios/acentos)
+  // Convierte keys a camelCase legible por frontend: fecha, cuadrilla, ubicacion, actividades, metrosLineales, metrosCuadrados, metrosCubicos, peso, folio, ventanilla
+  private normalizeKey(key: string) {
+    if (!key) return key;
+    // eliminar paréntesis y caracteres no alfanuméricos excepto espacios y guiones bajos
+    const cleaned = key.replace(/[()]/g, '').replace(/[^\p{L}0-9 _]/gu, '').trim();
+    // crear camelCase
+    const parts = cleaned.split(/\s+|_/).filter(Boolean).map(p => p.toLowerCase());
+    if (parts.length === 0) return '';
+    return parts[0] + parts.slice(1).map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('');
+  }
+
+  private normalizeViewRow(row: any) {
+    const out: any = {};
+    for (const k of Object.keys(row)) {
+      const nk = this.normalizeKey(k);
+      out[nk] = row[k];
+    }
+
+    // Mapear nombres comunes a los esperados por el frontend
+    const mapped: any = {
+      fecha: out.fecha ?? out.Fecha ?? out.date ?? out.fechaRegistro ?? out.fecha_registro,
+      cuadrilla: out.cuadrilla ?? out.noCuadrilla ?? out.numeroCuadrilla ?? out['NoCuadrilla'] ?? out['No. Cuadrilla'] ?? out['no. cuadrilla'] ?? out['nocuadrilla'] ?? out['no'] ?? 'Sin Especificar',
+      ubicacion: out.ubicacion ?? out.direccion ?? out.ubicacion1 ?? out.ubicacion2 ?? 'Sin dirección',
+      actividades: out.actividades ?? out.actividadPrincipal ?? out.actividad ?? out.actividadesRealizadas ?? 'General',
+      tipo: out.tipo ?? out.Tipo ?? undefined,
+      folio: out.folio ?? out.folioCiga ?? undefined,
+      ventanilla: out.ventanilla ?? out.numeroVentanilla ?? undefined,
+      metrosLineales: Number(out.metrosLineales ?? out['Metros Lineales'] ?? out.metros_lineales ?? out.metros ?? 0) || 0,
+      metrosCuadrados: Number(out.metrosCuadrados ?? out['Metros Cuadrados'] ?? out.metros_cuadrados ?? 0) || 0,
+      metrosCubicos: Number(out.metrosCubicos ?? out['Metros Cubicos'] ?? out.metros_cubicos ?? 0) || 0,
+      peso: Number(out.peso ?? out['Peso (KG)'] ?? out.pesoKg ?? out.Peso ?? 0) || 0,
+      // mantener el objeto original por si algo más lo necesita
+      _raw: row,
+    };
+
+    // Asegurar formato de fecha como ISO string
+    if (mapped.fecha && !(mapped.fecha instanceof Date)) {
+      const d = new Date(mapped.fecha);
+      mapped.fecha = isNaN(d.getTime()) ? null : d.toISOString();
+    } else if (mapped.fecha instanceof Date) {
+      mapped.fecha = mapped.fecha.toISOString();
+    }
+
+    // Normalizar actividades a array de strings
+    if (!Array.isArray(mapped.actividades)) {
+      mapped.actividades = typeof mapped.actividades === 'string' ? [mapped.actividades] : [String(mapped.actividades)];
+    }
+
+    return mapped;
+  }
   // ── Endpoints individuales por vista ────────────────────────────────────────
 
   async getReporteOficios(fechaInicio?: Date, fechaFin?: Date) {
     const { clause, params } = buildWhere(fechaInicio, fechaFin);
-    return sqlDb.$queryRawUnsafe(`SELECT * FROM vw_reporte_oficios${clause}`, ...params);
+    const raw: any[] = await sqlDb.$queryRawUnsafe(`SELECT * FROM vw_reporte_oficios${clause}`, ...params);
+
+    // Normalizar keys con nombres legibles para el frontend
+    return raw.map((r) => this.normalizeViewRow(r));
   }
 
   async getReporteEscuelas(fechaInicio?: Date, fechaFin?: Date) {
