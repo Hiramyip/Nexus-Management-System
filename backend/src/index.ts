@@ -46,8 +46,29 @@ const CORS_ORIGINS = process.env.CORS_ORIGINS
       'https://nexus-backend-2pm4.onrender.com'
     ];
 
+const CORS_HOST_PATTERNS = [
+  /^https:\/\/[^/]+\.vercel\.app$/,
+  /^https:\/\/[^/]+\.onrender\.com$/
+];
+
+function handleCorsOrigin(origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+  if (!origin) {
+    return callback(null, true);
+  }
+
+  if (CORS_ORIGINS.includes(origin)) {
+    return callback(null, true);
+  }
+
+  if (CORS_HOST_PATTERNS.some((pattern) => pattern.test(origin))) {
+    return callback(null, true);
+  }
+
+  return callback(new Error(`Origin ${origin} not allowed by CORS`));
+}
+
 app.use(cors({
-  origin: CORS_ORIGINS,
+  origin: handleCorsOrigin,
   credentials: true
 }));
 app.use(express.json());
