@@ -37,6 +37,22 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 const EXCEL_PROCESSOR_URL = process.env.EXCEL_PROCESSOR_URL || 'https://nexus-excel-processor-onrender-com.onrender.com';
 
+// Diagnostic: mostrar si la variable de entorno de Mongo está presente y el nombre de la BD
+(() => {
+  const raw = process.env.MONGODB_URL;
+  if (!raw) {
+    console.warn('MONGODB_URL no está definida en el entorno');
+    return;
+  }
+  try {
+    const afterSlash = raw.split('/').pop() || '';
+    const dbName = afterSlash.split('?')[0] || afterSlash;
+    console.log(`MONGODB_URL está definida. Base de datos objetivo: ${dbName}`);
+  } catch (e) {
+    console.log('MONGODB_URL está definida (no se pudo parsear el nombre de BD)');
+  }
+})();
+
 const CORS_ORIGINS = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
   : [
